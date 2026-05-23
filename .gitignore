@@ -1,22 +1,17 @@
-# Generated / local-only — do not commit
-packaging/certs/
-packaging/*.zxp
-packaging/demo/
-packaging/production/
-packaging/staging_*/
-packaging/staging_Expo_Impo_for_Illustrator/
-packaging/.rnd
-releases/*.zxp
+# Local development only — not published on GitHub
 
-# Commercial & internal source (keep local only)
-assets/jsx/functions/
-assets/jsx/func_bin/
-assets/jsx/func_demo/native/
+packaging/
+CSXS/
+assets/
+components/
+index.html
+mimetype
+META-INF/
 dev_docs/
 to-do.md
 .debug
-
-# OS
-.DS_Store
-Thumbs.db
-desktop.ini
+DEVELOPER.md
+GITHUB_SETUP.md
+PRODUCT.json
+releases/
+*.zxp

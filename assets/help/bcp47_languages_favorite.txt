@@ -1,9 +1,0 @@
-// Favorite language list for XLIFF export
-// Format: tag|label
-// Lines starting with // are ignored
-
-en|English
-de|German
-el|Greek
-km|Khmer
-es-419|Spanish (Latin America)
