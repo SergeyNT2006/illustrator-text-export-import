@@ -1,9 +1,12 @@
 # Generated / local-only — do not commit
 packaging/certs/
 packaging/*.zxp
+packaging/demo/
+packaging/production/
 packaging/staging_*/
 packaging/staging_Expo_Impo_for_Illustrator/
 packaging/.rnd
+releases/*.zxp
 
 # Commercial & internal source (keep local only)
 assets/jsx/functions/

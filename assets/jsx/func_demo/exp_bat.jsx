@@ -1,261 +1,234 @@
-#target illustrator
-// Shared utilities: curver, escapeXML, font helpers, color helpers, paragraph helpers
-#include "_shared.jsx"
-var DEMO_FILE_LIMIT = 5;
-
-
-function find_files(dir, mask_array)
-{
-    var arr = [];
-    for (var i = 0; i < mask_array.length; i++)
-    {
-        arr = arr.concat(find_files_sub(dir, [], mask_array[i].toUpperCase()));
-    }
-    return arr;
-}
-
-function find_files_sub(dir, array, mask)
-{
-    var f = Folder(dir).getFiles('*.*');
-    for (var i = 0; i < f.length; i++)
-    {
-        if (f[i] instanceof Folder)
-        {
-            find_files_sub(f[i], array, mask);
-        }
-        else if (f[i].name.substr(-mask.length).toUpperCase() == mask)
-        {
-            array.push(f[i]);
-        }
-    }
-    return array;
-}
-
-
-function exp_bat()
-{
-    function selfiletype()
-    {
-        var w = new Window("dialog", "Select File Type");
-        w.alignChildren = "left";
-        var formats = [];
-        formats[0] = w.add("radiobutton", undefined, "Ai");
-        formats[1] = w.add("radiobutton", undefined, "EPS");
-        formats[2] = w.add("radiobutton", undefined, "SVG");
-        formats[0].value = true;
-        var selectedIndex = 0;
-        var okBtn = w.add("button", undefined, "OK");
-        okBtn.onClick = function () {
-            for (var i = 0; i < formats.length; i++) {
-                if (formats[i].value) { selectedIndex = i; break; }
-            }
-            w.close(1);
-        };
-        if (w.show() !== 1) {
-            return null;
-        }
-        return [".ai", ".eps", ".svg"][selectedIndex];
-    }
-
-    var extension = selfiletype();
-    if (!extension) {
-        return "CANCEL";
-    }
-
-    if (app.documents.length > 0)
-    {
-        var folder = Folder(app.activeDocument.path).selectDlg("Select the folder with the Illustration files");
-    }
-    else
-    {
-        var folder = Folder.selectDialog("Select Source Folder...\nHint: Open a document to set default path");
-    }
-
-    if (folder == null) {
-        return "CANCEL";
-    }
-
-    var TmpFile = new File(folder.fsName + "/" + folder.name + "_to_translate.xml");
-    yourFile = TmpFile.saveDlg('Save as', '*.xml');
-    var myFilename = yourFile;
-    if (!myFilename) {
-        return "CANCEL";
-    }
-
-    var files = find_files(folder, [extension]);
-    var totalFoundFiles = files.length;
-    if (totalFoundFiles === 0) {
-        return "ERROR: No *" + extension + " files found in the selected folder.";
-    }
-    var fileCount = Math.min(totalFoundFiles, DEMO_FILE_LIMIT);
-
-    var confirmWin = new Window("dialog", "Batch Export");
-    confirmWin.orientation = "column";
-    confirmWin.alignChildren = ["fill", "center"];
-    confirmWin.spacing = 10;
-    confirmWin.margins = 16;
-    confirmWin.add("statictext", undefined, "Please wait for the work to complete.");
-    confirmWin.add("statictext", undefined, "The export will start only after you click OK.");
-    confirmWin.add("statictext", undefined, "The interface may freeze; please wait for the success message.");
-    var btnGroup = confirmWin.add("group");
-    btnGroup.alignment = "center";
-    var okBtn = btnGroup.add("button", undefined, "OK", { name: "ok" });
-    var cancelBtn = btnGroup.add("button", undefined, "Cancel", { name: "cancel" });
-    cancelBtn.onClick = function () { confirmWin.close(0); };
-    okBtn.onClick = function () { confirmWin.close(1); };
-    if (confirmWin.show() !== 1) {
-        return "CANCEL";
-    }
-
-    var FileOut = new File(myFilename);
-    FileOut.open("w");
-    FileOut.encoding = "UTF8";
-    FileOut.writeln('<?xml version="1.0" encoding="UTF-8"?>');
-    FileOut.writeln("<root>");
-    FileOut.writeln('<about>' + escapeXML(buildAboutText('ryzl@hotmail.com')) + '</about>');
-    FileOut.writeln("<folder>" + escapeXML(folder.fsName) + "</folder>");
-    FileOut.writeln("<extension>" + extension + "</extension>");
-
-    var startTime = new Date();
-    var processedCount = 0;
-    var skippedFiles = [];
-    var totalFrames = 0;
-
-    for (var j = 0; j < fileCount; j++)
-    {
-        var idoc = null;
-        var fullPathString = "";
-        var shortFileName = files[j].name;
-
-        try
-        {
-            app.userInteractionLevel = UserInteractionLevel.DONTDISPLAYALERTS;
-            idoc = app.open(files[j]);
-            fullPathString = decodeURI(idoc.fullName.fsName || idoc.fullName.toString());
-            app.userInteractionLevel = UserInteractionLevel.DISPLAYALERTS;
-
-            var fileLines = [];
-            fileLines.push("<file Name=\"" + escapeXML(fullPathString) + "\">");
-
-            var uniqueCharacterStyles = {};
-            var currentCharacterStyleId = 0;
-            fileLines.push('\t<CharacterStyles>');
-            for (var charFrameIndex = 0; charFrameIndex < idoc.textFrames.length; charFrameIndex++) {
-                var textFrame = idoc.textFrames[charFrameIndex];
-                for (var charRangeIndex = 0; charRangeIndex < textFrame.textRanges.length; charRangeIndex++) {
-                    try {
-                        var textRange = textFrame.textRanges[charRangeIndex];
-                        var characterAttributes = textRange.characterAttributes;
-                        var fontInfo = getSafeFontInfo(characterAttributes);
-                        var fontFamily = fontInfo.family;
-                        var fontStyle = fontInfo.style;
-                        var fontInternalName = fontInfo.internalName;
-                        var fontSize = Math.round(characterAttributes.size);
-                        var cmykString = getColorStringFromFill(characterAttributes.fillColor, "0,0,0,100");
-                        var styleKey = fontFamily + "|" + fontStyle + "|" + fontSize + "|" + cmykString;
-                        if (!(styleKey in uniqueCharacterStyles)) {
-                            currentCharacterStyleId++;
-                            uniqueCharacterStyles[styleKey] = currentCharacterStyleId;
-                            fileLines.push('\t\t<s id="' + currentCharacterStyleId + '">' + escapeXML(fontFamily.replace(/\s/g, "")) + ',' + escapeXML(fontStyle) + ',' + escapeXML(fontInternalName) + ',' + fontSize + ',' + cmykString + '</s>');
-                        }
-                    } catch (e) {}
-                }
-            }
-            fileLines.push('\t</CharacterStyles>');
-
-            var lockedLayers = [];
-            for (var l = 0; l < idoc.layers.length; l++) {
-                var layer = idoc.layers[l];
-                if (layer.locked) lockedLayers.push(layer.name);
-            }
-            if (lockedLayers.length > 0) {
-                for (var u = 0; u < idoc.layers.length; u++) {
-                    idoc.layers[u].locked = false;
-                }
-            }
-
-            for (var o = idoc.textFrames.length - 1; o >= 0; o--) {
-                var frame = idoc.textFrames[o];
-                if (!frame.contents || /^\s*$/.test(frame.contents)) frame.remove();
-            }
-
-            for (var i = 0; i < idoc.textFrames.length; i++) {
-                var frame = idoc.textFrames[i];
-                var content = frame.contents;
-                var lastNonWhitespaceIndex = content.search(/\S(?=\s*$)/);
-                var lastSoftBreakIndex = content.search(/\S(?=\x03*$)/);
-                if (lastNonWhitespaceIndex !== -1) {
-                    var startIndex = lastNonWhitespaceIndex + 1;
-                    var fullTextRange = frame.textRanges[0];
-                    fullTextRange.start = startIndex;
-                    fullTextRange.end = content.length;
-                    fullTextRange.remove();
-                }
-                if (lastSoftBreakIndex !== -1) {
-                    var startIndex2 = lastSoftBreakIndex + 1;
-                    var fullTextRange2 = frame.textRanges[0];
-                    fullTextRange2.start = startIndex2;
-                    fullTextRange2.end = content.length;
-                    fullTextRange2.remove();
-                }
-            }
-
-            var idocFrameLen = idoc.textFrames.length;
-            totalFrames += idocFrameLen;
-            for (var f = 0; f < idocFrameLen; f++) {
-                var frame2 = idoc.textFrames[f];
-                fileLines.push("\t<frame id=\"" + f + "\">");
-                fileLines.push('\t\t<text><![CDATA[' + frame2.contents.replace(/\u0003/g, '\r') + ']]></text>');
-                fileLines.push("\t</frame>");
-            }
-            fileLines.push("</file>");
-
-            for (var k = 0; k < lockedLayers.length; k++) {
-                var layerToLock = idoc.layers.getByName(lockedLayers[k]);
-                layerToLock.locked = true;
-            }
-
-            idoc.close(SaveOptions.SAVECHANGES);
-            idoc = null;
-
-            for (var ln = 0; ln < fileLines.length; ln++) {
-                FileOut.writeln(fileLines[ln]);
-            }
-            processedCount++;
-        }
-        catch (e)
-        {
-            if (idoc) {
-                try {
-                    idoc.close(SaveOptions.DONOTSAVECHANGES);
-                } catch (closeErr) {}
-            }
-            skippedFiles.push(shortFileName);
-        }
-        $.gc();
-    }
-
-    FileOut.writeln("<totalfiles>Processed " + processedCount + " \"*" + extension + "\" files</totalfiles>");
-    FileOut.write("</root>");
-    FileOut.close();
-
-    var endTime = new Date();
-    var elapsedSec = Math.round((endTime - startTime) / 1000);
-    var elapsedStr = (elapsedSec < 60) ? elapsedSec + " sec" : Math.floor(elapsedSec / 60) + " min " + (elapsedSec % 60) + " sec";
-
-    var report = "Batch Export - complete\n\n";
-    report += "Processed files: " + processedCount + "\n";
-    report += "Found files: " + totalFoundFiles + "\n";
-    report += "Total text frames: " + totalFrames + "\n";
-    report += "Time elapsed: " + elapsedStr + "\n";
-    report += "DEMO MODE: only first " + DEMO_FILE_LIMIT + " files were processed.\n";
-    if (skippedFiles.length > 0) {
-        report += "\n\nSkipped (" + skippedFiles.length + "):\n" + skippedFiles.join("\n");
-    }
-    showAlertDialog('Export Success', report);
-    return "OK: " + report;
-}
-
-exp_bat();
-
-
+@JSXBIN@ES@2.0@MyBbyBnAUMgabyBn0ABZgbnACzBhLBCBCBCBnjzGjDjVjSjWjFjSCfeiJiUjIjJjT
+hAjYjNjMhAjGjJjMjFhAjXjBjThAjDjSjFjBjUjFjEhAjVjTjJjOjHhAiJjMjMjVjTjUjSjBjUjPjSh
+AiUjFjYjUhAiFjYjQjPjSjUhAjBjOjEhAiJjNjQjPjSjUhOhAiWjFjShahAnnnehfhOhAiUjIjFhAjB
+jVjUjIjPjShAjJjThAiTjFjSjHjFjZhAiJjOjPjajFjNjUjTjFjWhAjBjLjBhA2hBE2hVE2iAE2hTE2
+hVE2hZEhA2YE2hdE2heE2hXE2hVE2hcE2iGE2hVE2hSEhOhAiFjNjBjJjMhahAVzLjDjPjOjUjBjDjU
+iUjFjYjUDfAnnnneKhAhShQhRhYhNhShQhShWABD40BhAB0AzOjCjVjJjMjEiBjCjPjVjUiUjFjYjUE
+AhAMhTbyBn0ADOhUZhUnAFe0AUzChGhGFhzBhBGVzDjTjUjSHfACzDhBhdhdIVHfAnndAnnnJhVnASH
+AEjzGiTjUjSjJjOjHJfRBVHfAffnffZhWnAEXzHjSjFjQjMjBjDjFKfEXKfEXKfEXKfEXKfVHfARCYB
+hGBjHFeFhGjBjNjQhbffRCYBhcBjHFeEhGjMjUhbffRCYBheBjHFeEhGjHjUhbffRCYCichCBjHFeGh
+GjRjVjPjUhbffRCYBhHBjHFeGhGjBjQjPjThbffABH40BhAB0AzJjFjTjDjBjQjFiYiNiMLAhbMiLby
+Bn0ACgiMbyBn0ABOiNbyiOn0ABZiOnAXzEjOjBjNjFMfVzIjUjFjYjUiGjPjOjUNf0AUFVNfAXMfVNf
+AnnnABnzBjFOnnZiRnAVzMjGjBjMjMjCjBjDjLiOjBjNjFPfBACN40BhAP4B0AhAC0AzXjHjFjUiTjB
+jGjFiGjPjOjUiJjOjUjFjSjOjBjMiOjBjNjFQAiSMifbyBn0AFJjAnASzGjGjBjNjJjMjZRAneLiVjO
+jLjOjPjXjOiGjPjOjUftJjBnASzFjTjUjZjMjFSBneHiSjFjHjVjMjBjSftJjCnASzMjJjOjUjFjSjO
+jBjMiOjBjNjFTCCBCBVRfAnneBhNVSfBnnnftgjEbyBn0AEJjFnASzCjUjGUDXNfVzTjDjIjBjSjBjD
+jUjFjSiBjUjUjSjJjCjVjUjFjTVfEnftgyjHbyBn0ABOjHJjHnASRAXRfVUfDnffAUFVUfDXRfVUfDn
+nnABnOnngyjIbyBn0ABOjIJjInASSBXSfVUfDnffAUFVUfDXSfVUfDnnnABnOnnJjLnASTCEjQfRCVU
+fDCBCBVRfAnneBhNVSfBnnffnffABnOnnZjOnAWzGiPjCjKjFjDjUWDRVRfASVSfBTVTfCAFV40BhAT
+4C0AiAU4D0AiAR40BiAS4B0AiABEAzPjHjFjUiTjBjGjFiGjPjOjUiJjOjGjPXAjPMkHbyBn0ADJkIn
+ASzMjEjFjGjBjVjMjUiWjBjMjVjFYAUzCjcjcZVzIjGjBjMjMjCjBjDjLgafJnneJhQhMhQhMhQhMhR
+hQhQnftgkJbyBn0AFOkKbykLn0ABZkLnAVYf0AhGVzJjGjJjMjMiDjPjMjPjSgbfInOkNbykOn0ABZk
+OnACBCBCBCBCBCBEXzFjSjPjVjOjEgcfjzEiNjBjUjIgdfRBXzEjDjZjBjOgefVgbfIffnneBhMEXgc
+fjgdfRBXzHjNjBjHjFjOjUjBgffVgbfIffnnnneBhMEXgcfjgdfRBXzGjZjFjMjMjPjXhAfVgbfIffn
+nnneBhMEXgcfjgdfRBXzFjCjMjBjDjLhBfVgbfIffnnACzDhdhdhdhCXzIjUjZjQjFjOjBjNjFhDfVg
+bfInneJiDiNiZiLiDjPjMjPjSnOkTbkUn0AIJkUnASzBjShEBCzBhPhFXzDjSjFjEhGfVgbfInndnfn
+ftJkVnASzBjHhHCChFXzFjHjSjFjFjOhIfVgbfInndnfnftJkWnASzBjChJDChFXzEjCjMjVjFhKfVg
+bfInndnfnftJkXnASzBjLhLECzBhNhMnEXzDjNjBjYhNfjgdfRDVhEfBVhHfCVhJfDffdBnnftJkYnA
+SzBjDhOFUZChFChMChMnVhEfBdBnVhLfEnnChMnVhLfEdBnnnnndAnftJkZnASzBjNhPGUZChFChMCh
+MnVhHfCdBnVhLfEnnChMnVhLfEdBnnnnndAnftJkanASzBjZhQHUZChFChMChMnVhJfDdBnVhLfEnnC
+hMnVhLfEdBnnnnndAnftZkbnACBCBCBCBCBCBEXgcfjgdfRBCzBhKhRVhOfFnndjEffnneBhMEXgcfj
+gdfRBChRVhPfGnndjEffnnnneBhMEXgcfjgdfRBChRVhQfHnndjEffnnnneBhMEXgcfjgdfRBChRVhL
+fEnndjEffnnAChCXhDfVgbfInneIiSiHiCiDjPjMjPjSnOlAblCn0ACOlCZlCnAFeHhQhMhQhMhQhMh
+QAChCXzEjHjSjBjZhSfVgbfInndjEnZlDnACBnEXgcfjgdfRBChRChMnChFXhSfVgbfInndjEdBnnnd
+jEffeGhQhMhQhMhQhMnAChCXhDfVgbfInneJiHjSjBjZiDjPjMjPjSnOlFbylHn0ABZlHnAEjzWjHjF
+jUiDjPjMjPjSiTjUjSjJjOjHiGjSjPjNiGjJjMjMhTfRCXzFjDjPjMjPjShUfXzEjTjQjPjUhVfVgbf
+IVYfAffAUFUFChCXhDfVgbfInneJiTjQjPjUiDjPjMjPjSXhVfVgbfInnXhUfXhVfVgbfInnnABnOnn
+ZlKnAVYf0AKhP4G0AiAhE4B0AiAhQ4H0AiAgb40BhAga4B0AhAhJ4D0AiAY40BiAhH4C0AiAhO4F0Ai
+AhL4E0AiACIAhTAlLMmAbyBn0AHJmBnASzLjTjUjZjMjFiDjPjVjOjUjThWAWWAnftJmCnASzPjTjUj
+ZjMjFiGjJjSjTjUiJjOjEjFjYhXBWWAnftJmDnASzIjNjBjYiDjPjVjOjUhYCndAftJmEnASzQjEjPj
+NjJjOjBjOjUiTjUjZjMjFiLjFjZhZDneAftamGbmHn0AHJmHnASzIjDjIjBjSiBjUjUjShaFXVfQzAh
+bfXzKjDjIjBjSjBjDjUjFjSjThcfVzJjQjBjSjBjHjSjBjQjIhdfJVzBjJhefEnftJmInASzIjGjPjO
+jUiJjOjGjPhfGEjXfRBVhafFffnftJmJnASzLjDjPjMjPjSiTjUjSjJjOjHiAHEjhTfRCXgbfVhafFF
+eHjVjOjLjOjPjXjOffnftJmKnASzIjTjUjZjMjFiLjFjZiBICBCBCBCBCBCBXRfVhffGnneBjcXSfVh
+ffGnnnneBjcXzEjTjJjajFiCfVhafFnnnneBjcViAfHnnnftOmNbmOn0ACJmOnABQhbfVhWfAViBfIn
+dAfJmPnABQhbfVhXfBViBfIVhefEnfAhGQhbfVhWfAViBfInJmRnAPQhbfVhWfAViBfIBtOmTbmUn0A
+CJmUnAShYCQhbfVhWfAViBfInffJmVnAShZDViBfInffACzBheiDQhbfVhWfAViBfIVhYfCnnnAVhef
+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
+AzKjGjJjOjEifjGjJjMjFjTkBAOMQbyBn0ADJSnASzBjGkCAEXzIjHjFjUiGjJjMjFjTkDfEjzGiGjP
+jMjEjFjSkEfRBVjefCffRBFeDhKhOhKffnftaTbyVn0ABOVbyXn0ABJXnAEjjdfRDQhbfVkCfAVhefB
+VzFjBjSjSjBjZkFfDVzEjNjBjTjLkGfEffACzKjJjOjTjUjBjOjDjFjPjGkHQhbfVkCfAVhefBjkEfn
+nOZbygbn0ABJgbnAEXiRfVkFfDRBQhbfVkCfAVhefBffACzChdhdkIEXjffEXzGjTjVjCjTjUjSkJfX
+MfQhbfVkCfAVhefBRBhzBhNkKXiEfVkGfEffnfVkGfEnnnAVhefBAXiEfVkCfAByBiFZgenAVkFfDAF
+he4B0AiAkC40BiAkG4C0AhAkF4B0AhAje40BhADCAjdAgfMhCbyBnABMhEbyBn0AMJhGnASzBjXkLAE
+jzGiXjJjOjEjPjXkMfRCFeGjEjJjBjMjPjHFeQiTjFjMjFjDjUhAiGjJjMjFhAiUjZjQjFftnftJhHn
+ABXzNjBjMjJjHjOiDjIjJjMjEjSjFjOkNfVkLfAneEjMjFjGjUfJhInASzHjGjPjSjNjBjUjTkOBAnn
+ftJhJnABXzBhQkPfVkOfBEXzDjBjEjEkQfVkLfARDFeLjSjBjEjJjPjCjVjUjUjPjOjiGfFeCiBjJff
+nfJhKnABXzBhRkRfVkOfBEXkQfVkLfARDFeLjSjBjEjJjPjCjVjUjUjPjOjiGfFeDiFiQiTffnfJhLn
+ABXzBhSkSfVkOfBEXkQfVkLfARDFeLjSjBjEjJjPjCjVjUjUjPjOjiGfFeDiTiWiHffnfJhMnABXzFj
+WjBjMjVjFkTfXkPfVkOfBnctfJhNnASzNjTjFjMjFjDjUjFjEiJjOjEjFjYkUCndAftJhOnASzFjPjL
+iCjUjOkVDEXkQfVkLfARDFeGjCjVjUjUjPjOjiGfFeCiPiLffnftJhPnABXzHjPjOiDjMjJjDjLkWfV
+kVfDNyBnAMhPbyBn0ACahQbyhRn0ABOhRbyhRn0ACJhRnABjkUfVhefAnfDyhRnAhbtAXkTfQhbfjkO
+fVhefAnAVhef0AXiEfjkOfByBiFJhTnAEXjQfjkLfRBFdBffABhe40BiAABAhbChUnfOhVbyhWn0ABZ
+hWnAFbACIEXzEjTjIjPjXkXfVkLfAnfnndBnZhYnAQhbfARDFeDhOjBjJFeEhOjFjQjTFeEhOjTjWjH
+fVkUfCAEkV4D0AiAkL40BiAkO4B0AiAkU4C0AiAAEAzLjTjFjMjGjJjMjFjUjZjQjFkYAhZhXJhbnAS
+zJjFjYjUjFjOjTjJjPjOkZAEjkYfnfnftOhcbyhdn0ABZhdnAFeGiDiBiOiDiFiMAhGVkZfAnOiAbyi
+Cn0ABJiCnASzGjGjPjMjEjFjSkaBEXzJjTjFjMjFjDjUiEjMjHkbfEjkEfRBXiefXzOjBjDjUjJjWjF
+iEjPjDjVjNjFjOjUkcfjzDjBjQjQkdfffRBFehNiTjFjMjFjDjUhAjUjIjFhAjGjPjMjEjFjShAjXjJ
+jUjIhAjUjIjFhAiJjMjMjVjTjUjSjBjUjJjPjOhAjGjJjMjFjTffnftACiDXiEfXzJjEjPjDjVjNjFj
+OjUjTkefjkdfnndAbyiGn0ABJiGnASkaBEXzMjTjFjMjFjDjUiEjJjBjMjPjHkffjkEfRBFeiBiTjFj
+MjFjDjUhAiTjPjVjSjDjFhAiGjPjMjEjFjShOhOhOKiIjJjOjUhahAiPjQjFjOhAjBhAjEjPjDjVjNj
+FjOjUhAjUjPhAjTjFjUhAjEjFjGjBjVjMjUhAjQjBjUjIffnftOiJbyiKn0ABZiKnAFeGiDiBiOiDiF
+iMACkIVkafBnnbnJiNnASzHiUjNjQiGjJjMjFlACEjiffRBCBCBCBXjKfVkafBnneBhPXMfVkafBnnn
+neRifjUjPifjUjSjBjOjTjMjBjUjFhOjYjNjMftnftJiOnABjzIjZjPjVjSiGjJjMjFlBfEXzHjTjBj
+WjFiEjMjHlCfVlAfCRCFeHiTjBjWjFhAjBjTFeFhKhOjYjNjMffnfJiPnASzKjNjZiGjJjMjFjOjBjN
+jFlDDjlBfnftOiQbyiRn0ABZiRnAFeGiDiBiOiDiFiMAhGVlDfDnJiUnASzFjGjJjMjFjTlEEEjkBfR
+CVkafBARBVkZfAfffnftJiVnASzPjUjPjUjBjMiGjPjVjOjEiGjJjMjFjTlFFXiEfVlEfEnftOiWbyi
+Xn0ABZiXnACBCBnVkZfAeLiFiSiSiPiShahAiOjPhAhKnnnehEhAjGjJjMjFjThAjGjPjVjOjEhAjJj
+OhAjUjIjFhAjTjFjMjFjDjUjFjEhAjGjPjMjEjFjShOAChCVlFfFnndAnJiZnASzJjGjJjMjFiDjPjV
+jOjUlGGEXzDjNjJjOlHfjgdfRCVlFfFjzPiEiFiNiPifiGiJiMiFifiMiJiNiJiUlIfffnftJibnASz
+KjDjPjOjGjJjSjNiXjJjOlJHEjkMfRCFeGjEjJjBjMjPjHFeMiCjBjUjDjIhAiFjYjQjPjSjUftnftJ
+icnABXzLjPjSjJjFjOjUjBjUjJjPjOlKfVlJfHneGjDjPjMjVjNjOfJidnABXkNfVlJfHARCFeEjGjJ
+jMjMFeGjDjFjOjUjFjSfnfJienABXzHjTjQjBjDjJjOjHlLfVlJfHndKfJifnABXzHjNjBjSjHjJjOj
+TlMfVlJfHndQfJjAnAEXkQfVlJfHRDFeKjTjUjBjUjJjDjUjFjYjUjiGfFehFiQjMjFjBjTjFhAjXjB
+jJjUhAjGjPjShAjUjIjFhAjXjPjSjLhAjUjPhAjDjPjNjQjMjFjUjFhOffJjBnAEXkQfVlJfHRDFeKj
+TjUjBjUjJjDjUjFjYjUjiGfFehOiUjIjFhAjFjYjQjPjSjUhAjXjJjMjMhAjTjUjBjSjUhAjPjOjMjZ
+hAjBjGjUjFjShAjZjPjVhAjDjMjJjDjLhAiPiLhOffJjCnAEXkQfVlJfHRDFeKjTjUjBjUjJjDjUjFj
+YjUjiGfFeheiUjIjFhAjJjOjUjFjSjGjBjDjFhAjNjBjZhAjGjSjFjFjajFhbhAjQjMjFjBjTjFhAjX
+jBjJjUhAjGjPjShAjUjIjFhAjTjVjDjDjFjTjThAjNjFjTjTjBjHjFhOffJjDnASzIjCjUjOiHjSjPj
+VjQlNIEXkQfVlJfHRBFeFjHjSjPjVjQffnftJjEnABXzJjBjMjJjHjOjNjFjOjUlOfVlNfIneGjDjFj
+OjUjFjSfJjFnASkVJEXkQfVlNfIREFeGjCjVjUjUjPjOjiGfFeCiPiLWWBMFeCjPjLffnftJjGnASzJ
+jDjBjOjDjFjMiCjUjOlPKEXkQfVlNfIREFeGjCjVjUjUjPjOjiGfFeGiDjBjOjDjFjMWWBMFeGjDjBj
+OjDjFjMffnftJjHnABXkWfVlPfKNyBnAMjHbyBn0ABJjHnAEXjQfjlJfRBFdAff0DhbCjHnfJjInABX
+kWfVkVfJNyBnAMjIbyBn0ABJjInAEXjQfjlJfRBFdBff0DhbCjInfOjJbyjKn0ABZjKnAFeGiDiBiOi
+DiFiMACIEXkXfVlJfHnfnndBnJjNnASzHiGjJjMjFiPjVjUlQLEjiffRBVlDfDftnftJjOnAEXjNfVl
+QfLRBFeBjXffJjPnABXzIjFjOjDjPjEjJjOjHlRfVlQfLneEiViUiGhYfJjQnAEXzHjXjSjJjUjFjMj
+OlSfVlQfLRBFehGhchfjYjNjMhAjWjFjSjTjJjPjOhdhChRhOhQhChAjFjOjDjPjEjJjOjHhdhCiViU
+iGhNhYhChfheffJjRnAEXlSfVlQfLRBFeGhcjSjPjPjUheffJjSnAEXlSfVlQfLRBCBCBnEjLfRBEjE
+fRBFeQjSjZjajMiAjIjPjUjNjBjJjMhOjDjPjNffffeHhcjBjCjPjVjUhennneIhchPjBjCjPjVjUhe
+ffJjTnAEXlSfVlQfLRBCBCBnEjLfRBXjKfVkafBffeIhcjGjPjMjEjFjShennneJhchPjGjPjMjEjFj
+SheffJjUnAEXlSfVlQfLRBCBCBnVkZfAeLhcjFjYjUjFjOjTjJjPjOhennneMhchPjFjYjUjFjOjTjJ
+jPjOheffJjWnASzJjTjUjBjSjUiUjJjNjFlTMEjzEiEjBjUjFlUfntnftJjXnASzOjQjSjPjDjFjTjT
+jFjEiDjPjVjOjUlVNndAftJjYnASzMjTjLjJjQjQjFjEiGjJjMjFjTlWOAnnftJjZnASzLjUjPjUjBj
+MiGjSjBjNjFjTlXPndAftajbbjdn0AFJjdnASzEjJjEjPjDlYRnbftJjenASzOjGjVjMjMiQjBjUjIi
+TjUjSjJjOjHlZSneAftJjfnASzNjTjIjPjSjUiGjJjMjFiOjBjNjFlaTXMfQhbfVlEfEVzBjKlbfQnf
+tgkBbyBn0AZJkDnABXzUjVjTjFjSiJjOjUjFjSjBjDjUjJjPjOiMjFjWjFjMlcfjkdfXzRiEiPiOiUi
+EiJiTiQiMiBiZiBiMiFiSiUiTldfjzUiVjTjFjSiJjOjUjFjSjBjDjUjJjPjOiMjFjWjFjMlefnfJkE
+nASlYREXjNfjkdfRBQhbfVlEfEVlbfQffnffJkFnASlZSEjzJjEjFjDjPjEjFiViSiJlffRBUZXjKfX
+zIjGjVjMjMiOjBjNjFmAfVlYfREXzIjUjPiTjUjSjJjOjHmBfXmAfVlYfRnfnnffnffJkGnABXlcfjk
+dfXzNiEiJiTiQiMiBiZiBiMiFiSiUiTmCfjlefnfJkInASzJjGjJjMjFiMjJjOjFjTmDUAnnftJkJnA
+EXiRfVmDfURBCBCBnEjLfRBVlZfSffeMhcjGjJjMjFhAiOjBjNjFhdhCnnneChCheffJkLnASzVjVjO
+jJjRjVjFiDjIjBjSjBjDjUjFjSiTjUjZjMjFjTmEVWWAnftJkMnASzXjDjVjSjSjFjOjUiDjIjBjSjB
+jDjUjFjSiTjUjZjMjFiJjEmFWndAftJkNnAEXiRfVmDfURBFeSJhciDjIjBjSjBjDjUjFjSiTjUjZjM
+jFjTheffakObkPn0ACJkPnASzJjUjFjYjUiGjSjBjNjFmGYQhbfXzKjUjFjYjUiGjSjBjNjFjTmHfVl
+YfRVzOjDjIjBjSiGjSjBjNjFiJjOjEjFjYmIfXnftakQbykRn0ABgkRbyBn0AKJkSnASzJjUjFjYjUi
+SjBjOjHjFmJgaQhbfXzKjUjFjYjUiSjBjOjHjFjTmKfVmGfYVzOjDjIjBjSiSjBjOjHjFiJjOjEjFjY
+mLfZnftJkTnASVgbXVfVmJfganftJkUnAShfgcEjXfRBVVfgbffnftJkVnASzKjGjPjOjUiGjBjNjJj
+MjZmMgdXRfVhffgcnftJkWnASzJjGjPjOjUiTjUjZjMjFmNgeXSfVhffgcnftJkXnASzQjGjPjOjUiJ
+jOjUjFjSjOjBjMiOjBjNjFmOgfXTfVhffgcnftJkYnASzIjGjPjOjUiTjJjajFmPhAEXgcfjgdfRBXi
+CfVVfgbffnftJkZnASzKjDjNjZjLiTjUjSjJjOjHmQhBEjhTfRCXgbfVVfgbFeJhQhMhQhMhQhMhRhQ
+hQffnftJkanASiBhCCBCBCBCBCBCBVmMfgdnneBjcVmNfgennnneBjcVmPfhAnnnneBjcVmQfhBnnnf
+tOkbbkcn0ADJkcnATmFWBtJkdnABQhbfVmEfVViBfhCVmFfWnfJkenAEXiRfVmDfURBCBCBCBCBCBCB
+CBCBCBCBCBCBnVmFfWeJJJhcjThAjJjEhdhCnnneChCheEjLfRBEXKfVmMfgdRCYCicjTBjHFeAffff
+nnnneBhMEjLfRBVmNfgeffnnnneBhMEjLfRBVmOfgfffnnnneBhMVmPfhAnnnneBhMVmQfhBnnnneEh
+chPjTheffAhGCzCjJjOmRViBfhCVmEfVnnnABnOnnAVmLfZAXiEfXmKfVmGfYByBiFAVmIfXAXiEfXm
+HfVlYfRByBiFJlDnAEXiRfVmDfURBFeTJhchPiDjIjBjSjBjDjUjFjSiTjUjZjMjFjTheffJlFnASzM
+jMjPjDjLjFjEiMjBjZjFjSjTmShDAnnftalGblHn0ACJlHnASzFjMjBjZjFjSmThFQhbfXzGjMjBjZj
+FjSjTmUfVlYfRVzBjMmVfhEnftOlIJlInAEXiRfVmSfhDRBXMfVmTfhFffAXzGjMjPjDjLjFjEmWfVm
+TfhFnAVmVfhEAXiEfXmUfVlYfRByBiFOlKbylLn0ABalLbylMn0ABJlMnABXmWfQhbfXmUfVlYfRVzB
+jVmXfhGncffAVmXfhGAXiEfXmUfVlYfRByBiFACiDXiEfVmSfhDnndAnKlQblRn0ACJlRnASzFjGjSj
+BjNjFmYhIQhbfXmHfVlYfRVzBjPmZfhHnftOlSJlSnAEXzGjSjFjNjPjWjFmafVmYfhInfAUZhGXiJf
+VmYfhIEXjafYFieicjThKhEARBXiJfVmYfhIffnnnASmZhHChMXiEfXmHfVlYfRnndBnftCzChehdmb
+VmZfhHnndATmZhHyBtalVblWn0AGJlWnASmYhIQhbfXmHfVlYfRVhefhJnftJlXnASzHjDjPjOjUjFj
+OjUmchKXiJfVmYfhInftJlYnASzWjMjBjTjUiOjPjOiXjIjJjUjFjTjQjBjDjFiJjOjEjFjYmdhLEXz
+GjTjFjBjSjDjImefVmcfhKRBYKiciThIhfhdicjThKhEhJAffnftJlZnASzSjMjBjTjUiTjPjGjUiCj
+SjFjBjLiJjOjEjFjYmfhMEXmefVmcfhKRBYMiciThIhfhdicjYhQhThKhEhJAffnftOlablbn0AFJlb
+nASzKjTjUjBjSjUiJjOjEjFjYnAhNCBVmdfhLnndBnftJlcnASzNjGjVjMjMiUjFjYjUiSjBjOjHjFn
+BhOXkPfXmKfVmYfhInftJldnABXzFjTjUjBjSjUnCfVnBfhOVnAfhNnfJlenABXzDjFjOjEnDfVnBfh
+OXiEfVmcfhKnfJlfnAEXmafVnBfhOnfACIVmdfhLnndyBnOmBbmCn0AFJmCnASzLjTjUjBjSjUiJjOj
+EjFjYhSnEhPCBVmffhMnndBnftJmDnASzOjGjVjMjMiUjFjYjUiSjBjOjHjFhSnFhQXkPfXmKfVmYfh
+InftJmEnABXnCfVnFfhQVnEfhPnfJmFnABXnDfVnFfhQXiEfVmcfhKnfJmGnAEXmafVnFfhQnfACIVm
+ffhMnndyBnAVhefhJAXiEfXmHfVlYfRByBiFJmKnASzMjJjEjPjDiGjSjBjNjFiMjFjOnGhRXiEfXmH
+fVlYfRnftJmLnASlXPCBnVnGfhRnnntfamMbmNn0AEJmNnASzGjGjSjBjNjFhSnHhTQhbfXmHfVlYfR
+VkCfhSnftJmOnAEXiRfVmDfURBCBCBnVkCfhSeMJhcjGjSjBjNjFhAjJjEhdhCnnneChCheffJmPnAE
+XiRfVmDfURBCBCBnEXKfXiJfVnHfhTRCYGicjVhQhQhQhTBjHFeBNffeRJJhcjUjFjYjUhehchBibiD
+iEiBiUiBibnnneKididhehchPjUjFjYjUheffJmQnAEXiRfVmDfURBFeJJhchPjGjSjBjNjFheffAVk
+CfhSAVnGfhRByBiFJmSnAEXiRfVmDfURBFeHhchPjGjJjMjFheffamUbmVn0ACJmVnASzLjMjBjZjFj
+SiUjPiMjPjDjLnIhVEXzJjHjFjUiCjZiOjBjNjFnJfXmUfVlYfRRBQhbfVmSfhDVhLfhUffnftJmWnA
+BXmWfVnIfhVnctfAVhLfhUAXiEfVmSfhDByBiFJmZnAEXjQfVlYfRRBXzLiTiBiWiFiDiIiBiOiHiFi
+TnKfjzLiTjBjWjFiPjQjUjJjPjOjTnLfffJmanASlYRnbffamcbymdn0ABJmdnAEXlSfVlQfLRBQhbf
+VmDfUVzCjMjOnMfhWffAVnMfhWAXiEfVmDfUByBiFJmfnATlVNBtABnOnbyBn0ACOnDbynEn0ABgnEb
+yBn0ABJnFnAEXjQfVlYfyBRBXzQiEiPiOiPiUiTiBiWiFiDiIiBiOiHiFiTnNfjnLfffABnzIjDjMjP
+jTjFiFjSjSnOnnAVlYfyBnJnInAEXiRfVlWfyBRBVlafyBffJnKnAEXzCjHjDnPfjjBfnfAVlbfQAVl
+GfGByBiFJnNnAEXlSfVlQfLRBCBCBCBCBnVlVfNeWhcjUjPjUjBjMjGjJjMjFjTheiQjSjPjDjFjTjT
+jFjEhAnnneDhAhChKVkZfAnnnneUhChAjGjJjMjFjThchPjUjPjUjBjMjGjJjMjFjTheffJnOnAEXzF
+jXjSjJjUjFnQfVlQfLRBFeHhchPjSjPjPjUheffJnPnAEXjQfVlQfLnfJnRnASzHjFjOjEiUjJjNjFn
+RhXEjlUfntnftJnSnASzKjFjMjBjQjTjFjEiTjFjDnShYEXgcfjgdfRBChFChMVnRfhXVlTfMnnnnd2
+nIDffnftJnTnASzKjFjMjBjQjTjFjEiTjUjSnThZdCiFVnSfhYnndhcCBVnSfhYnneEhAjTjFjDCBCB
+CBEXzFjGjMjPjPjSnUfjgdfRBChFVnSfhYnndhcffnneFhAjNjJjOhACzBhFnVVnSfhYnndhcnnnneE
+hAjTjFjDnftJnVnASzGjSjFjQjPjSjUnWhaneZiCjBjUjDjIhAiFjYjQjPjSjUhAhNhAjDjPjNjQjMj
+FjUjFKKftJnWnASnWhaCBnCBCBnVlVfNeRiQjSjPjDjFjTjTjFjEhAjGjJjMjFjThahAnnneBKnnntf
+JnXnASnWhaCBnCBCBnVlFfFeNiGjPjVjOjEhAjGjJjMjFjThahAnnneBKnnntfJnYnASnWhaCBnCBCB
+nVlXfPeTiUjPjUjBjMhAjUjFjYjUhAjGjSjBjNjFjThahAnnneBKnnntfJnZnASnWhaCBnCBCBnVnTf
+hZeOiUjJjNjFhAjFjMjBjQjTjFjEhahAnnneBKnnntfJnanASnWhaCBnCBCBnjlIfeWiEiFiNiPhAiN
+iPiEiFhahAjPjOjMjZhAjGjJjSjTjUhAnnneXhAjGjJjMjFjThAjXjFjSjFhAjQjSjPjDjFjTjTjFjE
+hOKnnntfOnbbyncn0ABJncnASnWhaCBnCBCBCBnXiEfVlWfOeLKKiTjLjJjQjQjFjEhAhInnneDhJha
+KEXzEjKjPjJjOnXfVlWfORBFeBKffnnnnntfACiDXiEfVlWfOnndAnJnenAEjjJfRCFeOiFjYjQjPjS
+jUhAiTjVjDjDjFjTjTVnWfhaffZnfnACBnVnWfhaeEiPiLhahAnAhbhe4hJ0AiAnS4hY0AiAnT4hZ0A
+iAnW4ha0AiAlb4Q0AiAV4gb0AiAka4B0AiAmV4hE0AiAmP4hA0AiAhL4hU0AiAkV4J0AiAkC4hS0AiA
+hf4gc0AiAiB4hC0AiAkZ40BiAlT4M0AiAnR4hX0AiAlP4K0AiAlA4C0AiAlD4D0AiAlF4F0AiAlJ4H0
+AiAlN4I0AiAlQ4L0AiAlV4N0AiAlW4O0AiAlX4P0AiAlE4E0AiAlY4R0AiAlZ4S0AiAla4T0AiAmD4U
+0AiAmE4V0AiAmF4W0AiAmI4X0AiAmG4Y0AiAmc4hK0AiAmL4Z0AiAmY4hI0AiAlG4G0AiAmJ4ga0AiA
+mM4gd0AiAmN4ge0AiAmO4gf0AiAmQ4hB0AiAmS4hD0AiAmT4hF0AiAmX4hG0AiAmZ4hH0AiAmd4hL0A
+iAmf4hM0AiAnA4hN0AiAnB4hO0AiAnE4hP0AiAnF4hQ0AiAnG4hR0AiAnH4hT0AiAnI4hV0AiAnM4hW
+0AiAAhbAzHjFjYjQifjCjBjUnYA2ABDJYnASCyBneHhVhOhVhOhQhOhQftJDnASlIyBndFftJ2CBnAE
+jnYfnfAClI4B0AiAC40BiAACAhbByB

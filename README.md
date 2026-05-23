@@ -2,7 +2,7 @@
 
 CEP panel for **Adobe Illustrator** — export document text to **XML** or **XLIFF 1.2**, translate in your CAT tool, import back with formatting, fonts, and colors restored.
 
-**Version:** 5.5.0 · **Author:** Sergey A. Inozemtsev · **Contact:** [sinozemez@gmail.com](mailto:sinozemez@gmail.com)
+**Version:** 5.5.0 · **Adobe Plugin ID:** 205341 · **Author:** Sergey A. Inozemtsev · **Contact:** [sinozemez@gmail.com](mailto:sinozemez@gmail.com)
 
 ---
 
@@ -10,10 +10,12 @@ CEP panel for **Adobe Illustrator** — export document text to **XML** or **XLI
 
 | | |
 |---|---|
-| **Home & overview** | [docs/index.html](docs/index.html) → enable [GitHub Pages](GITHUB_SETUP.md) |
+| **Home & overview** | [docs/index.html](docs/index.html) |
 | **Usage guide** | [docs/usage.html](docs/usage.html) |
-| **Purchase ($100 USD)** | [docs/buy.html](docs/buy.html) |
+| **Purchase ($100 USD)** | [Adobe Exchange (205341)](https://exchange.adobe.com/creativecloud.details.205341.html) · [docs/buy.html](docs/buy.html) |
 | **Free demo (.zxp)** | [GitHub Releases](https://github.com/sinozemez/illustrator-text-export-import/releases) |
+| **GitHub setup** | [GITHUB_SETUP.md](GITHUB_SETUP.md) |
+| **Demo ZXP (local)** | `packaging/Illustrator_Export_Import_text_demo.zxp` |
 
 ---
 
@@ -23,7 +25,7 @@ CEP panel for **Adobe Illustrator** — export document text to **XML** or **XLI
 - **Batch** export & import for folders of `.ai`, `.eps`, `.svg`
 - BCP47 language lists for XLIFF (full list + favorites)
 - Paragraph formatting: alignment, indents, tab stops, fonts, CMYK colors
-- Illustrator **CS6 (17.0) through 2026 (30.x)** · Windows & macOS
+- Illustrator **CS6 (17.0) through 2026+ (v31.x)** · Windows & macOS
 
 ---
 
@@ -37,7 +39,7 @@ CEP panel for **Adobe Illustrator** — export document text to **XML** or **XLI
 | Commercial use | Evaluation | Licensed |
 
 Download the demo from **[Releases](https://github.com/sinozemez/illustrator-text-export-import/releases)**.  
-Purchase the full signed ZXP on the **[buy page](docs/buy.html)**.
+Purchase the full version on **[Adobe Exchange (Plugin ID 205341)](https://exchange.adobe.com/creativecloud.details.205341.html)** or the **[direct buy page](docs/buy.html)**.
 
 ---
 
@@ -55,33 +57,23 @@ Detailed steps: **[docs/usage.html](docs/usage.html)**
 ## Repository layout
 
 ```
-docs/                 Public site (GitHub Pages)
-releases/             Release notes & demo ZXP upload instructions
-packaging/            Build scripts (demo / full ZXP)
-assets/jsx/func_demo/ Demo logic (5-frame / 5-file limits)
-CSXS/manifest.xml     CEP manifest
-index.html            Panel UI
+docs/                                          Public site (GitHub Pages)
+releases/                                      Release notes for GitHub
+packaging/demo/                                Source tree for demo ZXP
+packaging/production/                          Source tree for full ZXP (local only)
+packaging/Illustrator_Export_Import_text_demo.zxp   Demo build (attach to Release)
+packaging/Populate-ZxpSourceFolders.ps1        Regenerate demo/ and production/
+assets/jsx/func_demo/                          Demo logic source
+CSXS/manifest.xml                              CEP manifest
 ```
 
-Full commercial JSX builds (`func_bin`) and developer sources are **not** published in this repository.
+Full ZXP (`Illustrator_Export_Import_text_full.zxp`) and `func_bin` are **not** published on GitHub — only on Adobe Exchange (Plugin ID **205341**).
 
 ---
 
 ## Build ZXP (maintainers)
 
-Requires **ZXPSignCmd** and a code-signing `.p12`.
-
-```powershell
-cd packaging
-
-# Public demo for GitHub Releases
-.\Build-Zxp.ps1 -Demo -CertificatePath "D:\path\to\cert.p12" -CertificatePassword "..."
-
-# Full commercial build (not for public repo)
-.\Build-Zxp.ps1 -Release -CertificatePath "D:\path\to\cert.p12" -CertificatePassword "..."
-```
-
-See also `packaging/ZXP_BUILD.md` and `packaging/ADOBE_EXCHANGE.md`.
+See **[packaging/README.md](packaging/README.md)** and **[GITHUB_SETUP.md](GITHUB_SETUP.md)**.
 
 ---
 

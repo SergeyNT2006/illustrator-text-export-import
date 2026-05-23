@@ -1,188 +1,96 @@
-#target illustrator
-var DEMO_FRAME_LIMIT = 5;
-
-function imp_xml() {
-    if (app.documents.length === 0) {
-        showAlertDialog('Import Error', "No open documents. Open the document and try again.");
-        return "ERROR: No open documents. Open the document and try again.";
-    }
-
-    var doc = app.activeDocument;
-    var xmlFile = File.openDialog("Select an translated XML file", "*.xml");
-    if (xmlFile) {
-                xmlFile.encoding = "UTF-8";
-                xmlFile.open("r");
-                var xmlContent = xmlFile.read();
-                var xmlDoc = new XML(xmlContent);
-
-                for (var i = 0; i < xmlDoc.CharacterStyles.s.length(); i++) 
-                {
-                    var styleNode = xmlDoc.CharacterStyles.s[i];
-                    var styleId = parseInt(styleNode.@id, 10);
-                    var values = styleNode.toString().split(',');
-                    var fontFamily = values[0];
-                    var fontStyle = values[1];
-                    var fontInternalName = values[2];
-                    var fontSize = parseFloat(values[3]);
-                    var fontCyan = parseInt(values[4], 10);
-                    var fontMagenta = parseInt(values[5], 10);
-                    var fontYellow = parseInt(values[6], 10);
-                    var fontBlack = parseInt(values[7], 10);
-                    var fullCMYK = [fontCyan, fontMagenta, fontYellow, fontBlack].join(",");
-                    var fullFontName = fontFamily + "-" + fontStyle
-                    var styleName = styleId + "_" + fullFontName + "_" + fontSize + "pt_" + "CMYK-" + fullCMYK;
-                    
-                    var charStyle;
-                    try {
-                        charStyle = doc.characterStyles.getByName(styleName);
-                    } catch (e) {
-                        charStyle = doc.characterStyles.add(styleName);
-                        var fullFontNameVariants = [
-                            fontInternalName,
-                            fontFamily + "-" + fontStyle,
-                            fontFamily + fontStyle,
-                            fontFamily + " " + fontStyle,
-                            fontFamily
-                        ];
-                        var foundFont = null;
-                        for (var v = 0; v < fullFontNameVariants.length; v++) {
-                            try {
-                                foundFont = app.textFonts.getByName(fullFontNameVariants[v]);
-                                if (foundFont) break;
-                            } catch (e) {}
-                        }
-                        if (foundFont) {
-                            charStyle.characterAttributes.textFont = foundFont;
-                        } else {
-                            showAlertDialog('Import Warning', "Font not found: " + fontFamily + " " + fontStyle + " (id=" + styleId + "). The style will be created without font assignment.");
-                        }
-                        var charAttr = charStyle.characterAttributes;
-                        charAttr.size = fontSize;
-                        var CharColor = new CMYKColor();
-                        CharColor.cyan = fontCyan;
-                        CharColor.magenta = fontMagenta;
-                        CharColor.yellow = fontYellow;
-                        CharColor.black = fontBlack;
-                        charAttr.fillColor = CharColor;
-                    }
-                }
-
-                var framesWithErrors = [];
-                var maxImportFrames = Math.min(DEMO_FRAME_LIMIT, xmlDoc.frame.length(), doc.textFrames.length);
-                for (var f = 0; f < maxImportFrames; f++)
-                {
-                    var textElement = xmlDoc.frame[f].text.toString();
-                    var linesInCdata = textElement.split('\n').length;
-                    var paragraphsCount = xmlDoc.frame[f].paragraph.length();
-                    if (linesInCdata !== paragraphsCount)
-                    {
-                        framesWithErrors.push(f);
-                    }
-                }
-                if (framesWithErrors.length > 0) {
-                    var errMsg = "Formatting error in XML file.\nCheck <frame id=\"N\"> where N is: " + framesWithErrors.join(', ') + "\nThe number of lines in <CDATA> must equal the number of <paragraph> tags.";
-                    showAlertDialog('Import Error', errMsg);
-                    return "ERROR: " + errMsg;
-                }
-
-                var textFramesLen = maxImportFrames;
-                for (var i = 0; i < textFramesLen; i++)
-                {
-                    var text = xmlDoc.frame[i].text.toString();
-                    doc.textFrames[i].contents = text;
-
-                    for (var j = 0; j < doc.textFrames[i].paragraphs.length; j++)
-                    {
-                        var parcur = doc.textFrames[i].paragraphs[j];
-                        var values = xmlDoc.frame[i].paragraph[j].toString().split(',');
-                        var position = values[0];
-                        switch (position)
-                        {
-                            case "Justification.LEFT":
-                                position = Justification.LEFT;
-                                break;
-                            case "Justification.CENTER":
-                                position = Justification.CENTER;
-                                break;
-                            case "Justification.RIGHT":
-                                position = Justification.RIGHT;
-                                break;
-                            default:
-                                position = Justification.LEFT;
-                                break;
-                        }
-                        var IBEF = parseInt(values[1], 10);
-                        var IAF = parseInt(values[2], 10);
-                        var LeftIndent = parseInt(values[3], 10);
-                        var FirstLineLeftIndent = parseInt(values[4], 10);
-                        var RightIndent = parseInt(values[5], 10);
-
-                        var tabpos = parseInt(values[6], 10);
-                        var fontName = values[7];
-                        var paragraphFontInternalName = values[8];
-                        var fontSize = parseFloat(values[9]);
-                        var fontColor = new CMYKColor();
-                        fontColor.cyan = parseInt(values[10], 10);
-                        fontColor.magenta = parseInt(values[11], 10);
-                        fontColor.yellow = parseInt(values[12], 10);
-                        fontColor.black = parseInt(values[13], 10);
-
-                        parcur.paragraphAttributes.justification = position;
-                        parcur.paragraphAttributes.spaceBefore = parseInt(IBEF, 10);
-                        parcur.paragraphAttributes.spaceAfter = parseInt(IAF, 10);
-                        parcur.paragraphAttributes.firstLineIndent = parseInt(FirstLineLeftIndent, 10);
-                        parcur.leftIndent = parseInt(LeftIndent, 10);
-                        parcur.rightIndent = parseInt(RightIndent, 10);
-                        var t = new Array();
-                        t[0] = new TabStopInfo;
-                        t[0].position = tabpos;
-                        parcur.tabStops = t;
-                        try {
-                            var fontNameVariants = [
-                                paragraphFontInternalName,
-                                fontName,
-                                fontName.replace('-', ''),
-                                fontName.replace('-', ' '),
-                                fontName.split('-')[0]
-                            ];
-                            var foundFont = null;
-                            for (var v = 0; v < fontNameVariants.length; v++) {
-                                try {
-                                    foundFont = app.textFonts.getByName(fontNameVariants[v]);
-                                    if (foundFont) break;
-                                } catch (e) {}
-                            }
-                            if (foundFont) {
-                                parcur.characterAttributes.textFont = foundFont;
-                            }
-                            parcur.characterAttributes.size = fontSize;
-                            parcur.characterAttributes.fillColor = fontColor;
-                        } catch (e) {
-                            showAlertDialog('Import Error', "Error assigning paragraph attributes (frame " + i + ", paragraph " + j + "): " + e);
-                        }
-                    }
-                }  
-                redraw();
-                for (var i = 0; i < textFramesLen; i++)
-                {
-                    for (var j = 0; j < doc.textFrames[i].paragraphs.length; j++)
-                    {
-                        if (/^\s+$/.test(doc.textFrames[i].paragraphs[j].contents))
-                        {
-                            doc.textFrames[i].paragraphs[j].contents = "";
-                        }
-                    }
-                }
-                redraw();
-                var report = "File " + xmlFile.name + " imported successfully.";
-                report += "\nDEMO MODE: only first " + DEMO_FRAME_LIMIT + " text frames were imported.";
-                showAlertDialog('Import Success', report);
-                return "OK: " + report;
-    } else {
-        return "CANCEL";
-    }
-}
-
-imp_xml();
-
-
+@JSXBIN@ES@2.0@MyBbyBnABMDbyBn0AEOEbFn0ACJFnAEjzPjTjIjPjXiBjMjFjSjUiEjJjBjMjPjHB
+fRCFeMiJjNjQjPjSjUhAiFjSjSjPjSFehTiOjPhAjPjQjFjOhAjEjPjDjVjNjFjOjUjThOhAiPjQjFj
+OhAjUjIjFhAjEjPjDjVjNjFjOjUhAjBjOjEhAjUjSjZhAjBjHjBjJjOhOffZGnAFehaiFiSiSiPiSha
+hAiOjPhAjPjQjFjOhAjEjPjDjVjNjFjOjUjThOhAiPjQjFjOhAjUjIjFhAjEjPjDjVjNjFjOjUhAjBj
+OjEhAjUjSjZhAjBjHjBjJjOhOACzDhdhdhdCXzGjMjFjOjHjUjIDfXzJjEjPjDjVjNjFjOjUjTEfjzD
+jBjQjQFfnndAnJJnASzDjEjPjDGAXzOjBjDjUjJjWjFiEjPjDjVjNjFjOjUHfjFfnftJKnASzHjYjNj
+MiGjJjMjFIBEXzKjPjQjFjOiEjJjBjMjPjHJfjzEiGjJjMjFKfRCFegdiTjFjMjFjDjUhAjBjOhAjUj
+SjBjOjTjMjBjUjFjEhAiYiNiMhAjGjJjMjFFeFhKhOjYjNjMffnftOLbMn0ASJMnABXzIjFjOjDjPjE
+jJjOjHLfVIfBneFiViUiGhNhYfJNnAEXzEjPjQjFjOMfVIfBRBFeBjSffJOnASzKjYjNjMiDjPjOjUj
+FjOjUNCEXzEjSjFjBjEOfVIfBnfnftJPnASzGjYjNjMiEjPjDPDEjzDiYiNiMQfRBVNfCftnftaRbTn
+0APJTnASzJjTjUjZjMjFiOjPjEjFRFQzASfXzBjTTfXzPiDjIjBjSjBjDjUjFjSiTjUjZjMjFjTUfVP
+fDVzBjJVfEnftJUnASzHjTjUjZjMjFiJjEWGEjzIjQjBjSjTjFiJjOjUXfRCXzDiAjJjEYfVRfFFdKf
+fnftJVnASzGjWjBjMjVjFjTZHEXzFjTjQjMjJjUgafEXzIjUjPiTjUjSjJjOjHgbfVRfFnfRBFeBhMf
+fnftJWnASzKjGjPjOjUiGjBjNjJjMjZgcIXzBhQgdfVZfHnftJXnASzJjGjPjOjUiTjUjZjMjFgeJXz
+BhRgffVZfHnftJYnASzQjGjPjOjUiJjOjUjFjSjOjBjMiOjBjNjFhAKXzBhShBfVZfHnftJZnASzIjG
+jPjOjUiTjJjajFhCLEjzKjQjBjSjTjFiGjMjPjBjUhDfRBXzBhThEfVZfHffnftJganASzIjGjPjOjU
+iDjZjBjOhFMEjXfRCXzBhUhGfVZfHFdKffnftJgbnASzLjGjPjOjUiNjBjHjFjOjUjBhHNEjXfRCXzB
+hVhIfVZfHFdKffnftJgcnASzKjGjPjOjUiZjFjMjMjPjXhJOEjXfRCXzBhWhKfVZfHFdKffnftJgdnA
+SzJjGjPjOjUiCjMjBjDjLhLPEjXfRCXzBhXhMfVZfHFdKffnftJgenASzIjGjVjMjMiDiNiZiLhNQEX
+zEjKjPjJjOhOfAREVhFfMVhHfNVhJfOVhLfPfRBFeBhMffnftJgfnASzMjGjVjMjMiGjPjOjUiOjBjN
+jFhPRCzBhLhQChQVgcfInneBhNVgefJnnnftJhAnASzJjTjUjZjMjFiOjBjNjFhRSChQChQChQChQCh
+QChQChQVWfGnneBifVhPfRnnnneBifVhCfLnnnneDjQjUifnneFiDiNiZiLhNVhNfQnnnftghDbyBn0
+ABJhEnASzJjDjIjBjSiTjUjZjMjFhSTEXzJjHjFjUiCjZiOjBjNjFhTfXzPjDjIjBjSjBjDjUjFjSiT
+jUjZjMjFjThUfVGfARBVhRfSffnffABnzBjFhVnbyBn0ANJhGnAShSyBEXzDjBjEjEhWfXhUfVGfyBR
+BVhRfyBffnffJhHnASzUjGjVjMjMiGjPjOjUiOjBjNjFiWjBjSjJjBjOjUjThXyBARFVhAfyBChQChQ
+VgcfyBnneBhNVgefyBnnChQVgcfyBVgefyBnnChQChQVgcfyBnneBhAVgefyBnnVgcfyBfnftJhOnAS
+zJjGjPjVjOjEiGjPjOjUhYyBnbftahPbyhQn0ABghQbyBn0ACJhRnAShYyBEXhTfXzJjUjFjYjUiGjP
+jOjUjThZfjFfRBQSfVhXfyBVzBjWhafyBffnffOhSDhSnAStAVhYfyBnABnhVnnAVhafyBAXDfVhXfy
+BByBzBhchbOhVbyhWn0ABJhWnABXzIjUjFjYjUiGjPjOjUhcfXzTjDjIjBjSjBjDjUjFjSiBjUjUjSj
+JjCjVjUjFjThdfVhSfyBVhYfyBnfAVhYfyBbyhYn0ABJhYnAEjBfRCFeOiJjNjQjPjSjUhAiXjBjSjO
+jJjOjHChQChQChQChQChQChQnVgcfyBeQiGjPjOjUhAjOjPjUhAjGjPjVjOjEhahAnnneBhAVgefyBn
+nnneFhAhIjJjEhdVWfyBnnnnehVhJhOhAiUjIjFhAjTjUjZjMjFhAjXjJjMjMhAjCjFhAjDjSjFjBjU
+jFjEhAjXjJjUjIjPjVjUhAjGjPjOjUhAjBjTjTjJjHjOjNjFjOjUhOffJhanASzIjDjIjBjSiBjUjUj
+SheyBXhdfVhSfyBnftJhbnABXzEjTjJjajFhffVhefyBVhCfyBnfJhcnASzJiDjIjBjSiDjPjMjPjSi
+AyBEjzJiDiNiZiLiDjPjMjPjSiBfntnftJhdnABXzEjDjZjBjOiCfViAfyBVhFfyBnfJhenABXzHjNj
+BjHjFjOjUjBiDfViAfyBVhHfyBnfJhfnABXzGjZjFjMjMjPjXiEfViAfyBVhJfyBnfJiAnABXzFjCjM
+jBjDjLiFfViAfyBVhLfyBnfJiBnABXzJjGjJjMjMiDjPjMjPjSiGfVhefyBViAfyBnfAVVfEAEXDfXT
+fXUfVPfDnfByBhbJiFnASzQjGjSjBjNjFjTiXjJjUjIiFjSjSjPjSjTiHZAnnftJiGnASzPjNjBjYiJ
+jNjQjPjSjUiGjSjBjNjFjTiIgaEXzDjNjJjOiJfjzEiNjBjUjIiKfRDjzQiEiFiNiPifiGiSiBiNiFi
+fiMiJiNiJiUiLfEXDfXzFjGjSjBjNjFiMfVPfDnfXDfXzKjUjFjYjUiGjSjBjNjFjTiNfVGfAffnfta
+iHbiJn0AEJiJnASzLjUjFjYjUiFjMjFjNjFjOjUiOgcEXgbfXzEjUjFjYjUiPfQSfXiMfVPfDVzBjGi
+QfgbnfnftJiKnASzMjMjJjOjFjTiJjOiDjEjBjUjBiRgdXDfEXgafViOfgcRBFeBKffnftJiLnASzPj
+QjBjSjBjHjSjBjQjIjTiDjPjVjOjUiSgeEXDfXzJjQjBjSjBjHjSjBjQjIiTfQSfXiMfVPfDViQfgbn
+fnftOiMbyiOn0ABJiOnAEXzEjQjVjTjIiUfViHfZRBViQfgbffACzDhBhdhdiVViRfgdViSfgennnAV
+iQfgbAViIfgaByBhbOiRbiSn0ADJiSnASzGjFjSjSiNjTjHiWgfChQChQnEXhOfViHfZRBFeChMhAff
+ehfiGjPjSjNjBjUjUjJjOjHhAjFjSjSjPjShAjJjOhAiYiNiMhAjGjJjMjFhOKiDjIjFjDjLhAhcjGj
+SjBjNjFhAjJjEhdhCiOhChehAjXjIjFjSjFhAiOhAjJjThahAnnneiKKiUjIjFhAjOjVjNjCjFjShAj
+PjGhAjMjJjOjFjThAjJjOhAhciDiEiBiUiBhehAjNjVjTjUhAjFjRjVjBjMhAjUjIjFhAjOjVjNjCjF
+jShAjPjGhAhcjQjBjSjBjHjSjBjQjIhehAjUjBjHjThOnftJiTnAEjBfRCFeMiJjNjQjPjSjUhAiFjS
+jSjPjSViWfgfffZiUnAChQnViWfgfeHiFiSiSiPiShahAnACzBheiXXDfViHfZnndAnJiXnASzNjUjF
+jYjUiGjSjBjNjFjTiMjFjOiYhAViIfganftaiYbian0ADJianASiPhBEXgbfXiPfQSfXiMfVPfDVVfE
+nfnftJibnABXzIjDjPjOjUjFjOjUjTiZfQSfXiNfVGfAVVfEViPfhBnfaidbifn0AgdJifnASzGjQjB
+jSjDjVjSiahDQSfXzKjQjBjSjBjHjSjBjQjIjTibfQSfXiNfVGfAVVfEVzBjKicfhCnftJjAnASZHEX
+gafEXgbfQSfXiTfQSfXiMfVPfDVVfEVicfhCnfRBFeBhMffnftJjBnASzIjQjPjTjJjUjJjPjOidhEX
+gdfVZfHnftcjCnAVidfhEERBFeSiKjVjTjUjJjGjJjDjBjUjJjPjOhOiMiFiGiUfRBFeUiKjVjTjUjJ
+jGjJjDjBjUjJjPjOhOiDiFiOiUiFiSfRBFeTiKjVjTjUjJjGjJjDjBjUjJjPjOhOiSiJiHiIiUfRBnf
+EbjFn0ACJjFnASidhEXzEiMiFiGiUiefjzNiKjVjTjUjJjGjJjDjBjUjJjPjOiffnffDjGnAStbjIn0
+ACJjInASidhEXzGiDiFiOiUiFiSjAfjiffnffDjJnAStbjLn0ACJjLnASidhEXzFiSiJiHiIiUjBfji
+ffnffDjMnAStbjOn0ACJjOnASidhEXiefjiffnffDjPnAStJjRnASzEiJiCiFiGjChFEjXfRCXgffVZ
+fHFdKffnftJjSnASzDiJiBiGjDhGEjXfRCXhBfVZfHFdKffnftJjTnASzKiMjFjGjUiJjOjEjFjOjUj
+EhHEjXfRCXhEfVZfHFdKffnftJjUnASzTiGjJjSjTjUiMjJjOjFiMjFjGjUiJjOjEjFjOjUjFhIEjXf
+RCXhGfVZfHFdKffnftJjVnASzLiSjJjHjIjUiJjOjEjFjOjUjGhJEjXfRCXhIfVZfHFdKffnftJjXnA
+SzGjUjBjCjQjPjTjHhKEjXfRCXhKfVZfHFdKffnftJjYnASzIjGjPjOjUiOjBjNjFjIhLXhMfVZfHnf
+tJjZnASzZjQjBjSjBjHjSjBjQjIiGjPjOjUiJjOjUjFjSjOjBjMiOjBjNjFjJhMXzBhYjKfVZfHnftJ
+janAShCLEjhDfRBXzBhZjLfVZfHffnftJjbnASzJjGjPjOjUiDjPjMjPjSjMhNEjiBfntnftJjcnABX
+iCfVjMfhNEjXfRCXzChRhQjNfVZfHFdKffnfJjdnABXiDfVjMfhNEjXfRCXzChRhRjOfVZfHFdKffnf
+JjenABXiEfVjMfhNEjXfRCXzChRhSjPfVZfHFdKffnfJjfnABXiFfVjMfhNEjXfRCXzChRhTjQfVZfH
+FdKffnfJkBnABXzNjKjVjTjUjJjGjJjDjBjUjJjPjOjRfXzTjQjBjSjBjHjSjBjQjIiBjUjUjSjJjCj
+VjUjFjTjSfViafhDVidfhEnfJkCnABXzLjTjQjBjDjFiCjFjGjPjSjFjTfXjSfViafhDEjXfRCVjCfh
+FFdKffnfJkDnABXzKjTjQjBjDjFiBjGjUjFjSjUfXjSfViafhDEjXfRCVjDfhGFdKffnfJkEnABXzPj
+GjJjSjTjUiMjJjOjFiJjOjEjFjOjUjVfXjSfViafhDEjXfRCVjFfhIFdKffnfJkFnABXzKjMjFjGjUi
+JjOjEjFjOjUjWfViafhDEjXfRCVjEfhHFdKffnfJkGnABXzLjSjJjHjIjUiJjOjEjFjOjUjXfViafhD
+EjXfRCVjGfhJFdKffnfJkHnASzBjUjYhOEjzFiBjSjSjBjZjZfntnftJkInABXgdfVjYfhOEjzLiUjB
+jCiTjUjPjQiJjOjGjPjafntnfJkJnABXidfXgdfVjYfhOVjHfhKnfJkKnABXzIjUjBjCiTjUjPjQjTj
+bfViafhDVjYfhOnfgkLbyBn0AGJkMnASzQjGjPjOjUiOjBjNjFiWjBjSjJjBjOjUjTjchPARFVjJfhM
+VjIfhLEXzHjSjFjQjMjBjDjFjdfVjIfhLRCFeBhNFeAffEXjdfVjIfhLRCFeBhNFeBhAffXgdfEXgaf
+VjIfhLRBFeBhNfffnftJkTnAShYVnbftakUbykVn0ABgkVbyBn0ACJkWnAShYVEXhTfXhZfjFfRBQSf
+VjcfhPVhafWffnffOkXDkXnAStAVhYfVnABnhVnnAVhafWAXDfVjcfhPByBhbOkabykbn0ABJkbnABX
+hcfXhdfViafhDVhYfVnfAVhYfVnJkdnABXhffXhdfViafhDVhCfLnfJkenABXiGfXhdfViafhDVjMfh
+NnfABnhVnbyBn0ABJlAnAEjBfRCFeMiJjNjQjPjSjUhAiFjSjSjPjSChQChQChQChQChQnVVfyBehMi
+FjSjSjPjShAjBjTjTjJjHjOjJjOjHhAjQjBjSjBjHjSjBjQjIhAjBjUjUjSjJjCjVjUjFjThAhIjGjS
+jBjNjFhAnnneMhMhAjQjBjSjBjHjSjBjQjIhAVicfyBnnnneDhJhahAjhVfnnffAVicfhCAXDfXibfQ
+SfXiNfVGfAVVfEByBhbAVVfEAViYfhAByBhbJlEnAEjzGjSjFjEjSjBjXjefnfalFbylHn0ABalHbyl
+Jn0ABOlJbylLn0ABJlLnABXiZfQSfXibfQSfXiNfVGfAVVfEVicfhCneAfAEXzEjUjFjTjUjffYFiei
+cjThLhEARBXiZfQSfXibfQSfXiNfVGfAVVfEVicfhCffnAVicfhCAXDfXibfQSfXiNfVGfAVVfEByBh
+bAVVfEAViYfhAByBhbJlPnAEjjefnfJlQnASzGjSjFjQjPjSjUkAhQChQChQnXzEjOjBjNjFkBfVIfB
+eFiGjJjMjFhAnnneXhAjJjNjQjPjSjUjFjEhAjTjVjDjDjFjTjTjGjVjMjMjZhOnftJlRnASkAhQChQ
+nChQChQnjiLfeXKiEiFiNiPhAiNiPiEiFhahAjPjOjMjZhAjGjJjSjTjUhAnnnegbhAjUjFjYjUhAjG
+jSjBjNjFjThAjXjFjSjFhAjJjNjQjPjSjUjFjEhOnnntfJlSnAEjBfRCFeOiJjNjQjPjSjUhAiTjVjD
+jDjFjTjTVkAfhQffZlTnAChQnVkAfhQeEiPiLhahAnAVIfBbylVn0ABZlVnAFeGiDiBiOiDiFiMAhRV
+4E0AiAkA4hQ0AiAic4hC0AiAjY4hO0AiAhC4L0AiAid4hE0AiAha4W0AiAiI4ga0AiAiH4Z0AiAiS4g
+e0AiAia4hD0AiAhe4X0AiAiQ4gb0AiAjI4hL0AiAjC4hF0AiAjD4hG0AiAjE4hH0AiAjF4hI0AiAjG4
+hJ0AiAjJ4hM0AiAjM4hN0AiAjc4hP0AiAiO4gc0AiAiR4gd0AiAiY4hA0AiAG40BiAjH4hK0AiAiW4g
+f0AiAiP4hB0AiAZ4H0AiAI4B0AiAN4C0AiAP4D0AiAgc4I0AiAge4J0AiAhA4K0AiAR4F0AiAW4G0Ai
+AhF4M0AiAhH4N0AiAhJ4O0AiAhL4P0AiAhN4Q0AiAhP4R0AiAhR4S0AiAhS4T0AiAhX4U0AiAhY4V0A
+iAiA4Y0AiAAhRAzHjJjNjQifjYjNjMkCAlXCJBnASiLyBndFftJlZnAEjkCfnfABiL40BiAABASByB

@@ -4,20 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Buy — Illustrator Text Export and Import</title>
-  <meta name="description" content="Purchase the full Illustrator Text Export and Import license for $100 USD.">
+  <meta name="description" content="Purchase the full Illustrator Text Export and Import license for $100 USD. Adobe Exchange Plugin ID 205341.">
   <link rel="stylesheet" href="assets/site.css">
+  <script src="assets/product-config.js"></script>
 </head>
 <body>
-  <!-- Edit PAYMENT_URL below when your checkout page is ready (Gumroad, Stripe, PayPal, etc.) -->
-  <script>
-    window.PRODUCT = {
-      name: "Illustrator Text Export and Import — Full License",
-      price: "$100 USD",
-      paymentUrl: "", // e.g. "https://your-store.gumroad.com/l/illustrator-text-export-import"
-      supportEmail: "sinozemez@gmail.com"
-    };
-  </script>
-
   <header class="site-header">
     <div class="wrap">
       <a class="logo" href="index.html">Text Export &amp; Import</a>
@@ -25,7 +16,8 @@
         <a href="index.html">Home</a>
         <a href="usage.html">Usage</a>
         <a class="active" href="buy.html">Buy — $100</a>
-        <a href="https://github.com/sinozemez/illustrator-text-export-import/releases" target="_blank" rel="noopener">Demo download</a>
+        <a id="nav-exchange" href="https://exchange.adobe.com/creativecloud.details.205341.html" target="_blank" rel="noopener">Adobe Exchange</a>
+        <a id="nav-demo" href="https://github.com/sinozemez/illustrator-text-export-import/releases" target="_blank" rel="noopener">Demo download</a>
       </nav>
     </div>
   </header>
@@ -33,7 +25,7 @@
   <main class="section">
     <div class="wrap hero-grid">
       <div class="card">
-        <span class="badge">One-time license</span>
+        <span class="badge">One-time license · Plugin ID 205341</span>
         <h1>Full version</h1>
         <p class="price">$100 <small>USD</small></p>
         <p class="lead">Unlimited frames and batch files. Licensed for commercial production use. Signed ZXP for Illustrator CS6–2026.</p>
@@ -47,28 +39,33 @@
         </ul>
 
         <div class="cta-row">
-          <a id="buy-btn" class="btn btn-primary" href="#">Buy now — $100</a>
-          <a class="btn btn-secondary" href="https://github.com/sinozemez/illustrator-text-export-import/releases/latest" target="_blank" rel="noopener">Try demo first</a>
+          <a id="buy-exchange" class="btn btn-primary" href="https://exchange.adobe.com/creativecloud.details.205341.html" target="_blank" rel="noopener">Buy on Adobe Exchange — $100</a>
+          <a id="buy-btn" class="btn btn-secondary" href="#">Direct purchase (email)</a>
+          <a class="btn btn-secondary" id="try-demo" href="https://github.com/sinozemez/illustrator-text-export-import/releases/latest" target="_blank" rel="noopener">Try demo first</a>
         </div>
-        <p id="buy-fallback" class="note" style="margin-top:20px;display:none;">
-          Online checkout is being configured. Email <a id="support-link" href="mailto:sinozemez@gmail.com">sinozemez@gmail.com</a> to purchase by invoice / PayPal.
+        <p id="buy-fallback" class="note" style="margin-top:20px;">
+          <strong>Recommended:</strong> purchase via <a id="link-exchange-inline" href="https://exchange.adobe.com/creativecloud.details.205341.html" target="_blank" rel="noopener">Adobe Exchange</a> (listing 205341) for Creative Cloud install.
+          For direct invoice / PayPal, email <a id="support-link" href="mailto:sinozemez@gmail.com">sinozemez@gmail.com</a>.
         </p>
       </div>
 
       <aside class="card">
         <h2>What you receive</h2>
         <ol class="steps">
-          <li>Payment confirmation</li>
-          <li>Download link for the signed full <strong>.zxp</strong> package</li>
-          <li>License key / receipt for your records</li>
-          <li>Install via Extension Manager and restart Illustrator</li>
+          <li>Payment confirmation (Exchange or direct)</li>
+          <li>Signed full <strong>.zxp</strong> via Creative Cloud or download link</li>
+          <li>Receipt for your records</li>
+          <li>Install and restart Illustrator</li>
         </ol>
 
-        <h3>License summary</h3>
-        <p class="note">One license covers one user or one production seat. Redistribution of the ZXP or source is not permitted. See <a href="https://github.com/sinozemez/illustrator-text-export-import/blob/main/LICENSE">LICENSE</a> in the repository.</p>
+        <h3>Technical IDs (support)</h3>
+        <p class="note">
+          Adobe Plugin ID: <strong>205341</strong><br>
+          ExtensionBundleId: <code>Illustrator_Text_Export_Import_5.5</code>
+        </p>
 
-        <h3>Questions?</h3>
-        <p>Contact <a href="mailto:sinozemez@gmail.com">sinozemez@gmail.com</a> before purchase if you need multi-seat or studio licensing.</p>
+        <h3>License summary</h3>
+        <p class="note">One license covers one user or one production seat. See <a href="https://github.com/sinozemez/illustrator-text-export-import/blob/main/LICENSE">LICENSE</a>.</p>
       </aside>
     </div>
   </main>
@@ -82,19 +79,31 @@
 
   <script>
     (function () {
-      var p = window.PRODUCT;
-      var btn = document.getElementById("buy-btn");
-      var fallback = document.getElementById("buy-fallback");
-      var support = document.getElementById("support-link");
-      support.href = "mailto:" + p.supportEmail + "?subject=Purchase%20Illustrator%20Text%20Export%20and%20Import";
+      var c = window.PRODUCT_CONFIG || {};
+      var email = c.supportEmail || "sinozemez@gmail.com";
+      var exchange = c.adobeExchangeUrl || "https://exchange.adobe.com/creativecloud.details.205341.html";
+      var demo = c.githubDemoReleases || "#";
+      var paymentUrl = c.directPaymentUrl || "";
 
-      if (p.paymentUrl) {
-        btn.href = p.paymentUrl;
+      document.querySelectorAll("#nav-exchange, #buy-exchange, #link-exchange-inline").forEach(function (el) {
+        el.href = exchange;
+      });
+      var navDemo = document.getElementById("nav-demo");
+      var tryDemo = document.getElementById("try-demo");
+      if (navDemo) navDemo.href = demo;
+      if (tryDemo) tryDemo.href = demo;
+
+      var support = document.getElementById("support-link");
+      support.href = "mailto:" + email + "?subject=Purchase%20Illustrator%20Text%20Export%20and%20Import%20(Plugin%20205341)";
+
+      var btn = document.getElementById("buy-btn");
+      if (paymentUrl) {
+        btn.href = paymentUrl;
         btn.target = "_blank";
         btn.rel = "noopener";
+        btn.textContent = "Buy direct — $100";
       } else {
         btn.href = support.href;
-        fallback.style.display = "block";
       }
     })();
   </script>

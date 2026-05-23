@@ -1,82 +1,122 @@
-# GitHub repository setup
+# GitHub repository — план публикации
 
-Follow these steps to publish the project and enable the product site.
+**Продукт:** Illustrator Text Export and Import v5.5.0  
+**Adobe Plugin ID:** 205341  
+**Exchange:** https://exchange.adobe.com/creativecloud.details.205341.html
 
-## 1. Create the repository on GitHub
+---
 
-1. Open [github.com/new](https://github.com/new)
-2. Repository name: **`illustrator-text-export-import`**
-3. Description: `CEP panel for Adobe Illustrator — export/import text to XML and XLIFF for translation workflows`
-4. **Public** repository
-5. Do **not** add README / .gitignore (already in the project)
+## Что уже готово локально
+
+| Артефакт | Путь |
+|----------|------|
+| Demo ZXP | `packaging/Illustrator_Export_Import_text_demo.zxp` |
+| Full ZXP | `packaging/Illustrator_Export_Import_text_full.zxp` |
+| Исходники demo | `packaging/demo/` |
+| Исходники production | `packaging/production/` |
+| Сайт (Pages) | `docs/` |
+| Документация | `README.md`, `releases/` |
+
+---
+
+## Что попадает в GitHub, а что нет
+
+| В репозиторий (git push) | Не в репозиторий |
+|--------------------------|------------------|
+| `docs/`, `README.md`, `LICENSE` | `*.zxp` (оба файла) |
+| `assets/jsx/func_demo/` (исходник demo) | `packaging/production/` (func_bin) |
+| `packaging/Populate-ZxpSourceFolders.ps1` | `assets/jsx/func_bin/`, `functions/` |
+| `packaging/README.md`, `PRODUCT.json` | `packaging/demo/` (генерируется скриптом) |
+| Панель UI, manifest, components | Сертификат `.p12` |
+
+**Full ZXP** загружается только в **Adobe Developer Distribution** (листинг 205341).  
+**Demo ZXP** прикрепляется к **GitHub Release** (не коммитить в git).
+
+---
+
+## Шаг 1. Создать репозиторий на GitHub
+
+1. [github.com/new](https://github.com/new)
+2. Name: **`illustrator-text-export-import`**
+3. Description: `CEP panel for Adobe Illustrator — export/import text to XML and XLIFF`
+4. **Public**
+5. Без README / .gitignore (уже в проекте)
 6. Create repository
 
-## 2. Push from this folder
+---
 
-Replace `YOUR_GITHUB_USERNAME` if different from `sinozemez`:
+## Шаг 2. Push кода
+
+Замените `YOUR_GITHUB_USERNAME` (сейчас в ссылках: `sinozemez`):
 
 ```powershell
-cd "d:\__Adobe_developers site\001_Illustrator_Text_Export_Import"
-git remote add origin https://github.com/YOUR_GITHUB_USERNAME/illustrator-text-export-import.git
+cd "D:\__Adobe_developers site\001_Illustrator_Text_Export_Import"
+git add -A
+git status
+git commit -m "Prepare public repo: docs, demo sources, packaging workflow for Plugin ID 205341."
 git branch -M main
+git remote add origin https://github.com/YOUR_GITHUB_USERNAME/illustrator-text-export-import.git
 git push -u origin main
 ```
 
-## 3. Enable GitHub Pages
+Если `origin` уже есть:
+
+```powershell
+git remote set-url origin https://github.com/YOUR_GITHUB_USERNAME/illustrator-text-export-import.git
+git push -u origin main
+```
+
+---
+
+## Шаг 3. GitHub Pages
 
 1. Repository → **Settings** → **Pages**
-2. Source: **Deploy from a branch**
-3. Branch: **`main`** · folder: **`/docs`**
-4. Save
+2. Source: branch **`main`**, folder **`/docs`**
+3. Save
 
-Site URL will be:
+URL сайта:
 
 ```text
 https://YOUR_GITHUB_USERNAME.github.io/illustrator-text-export-import/
 ```
 
-Update links in `docs/*.html` and `README.md` if the username or repo name differs.
+Обновите `YOUR_GITHUB_USERNAME` в `docs/assets/product-config.js` при необходимости.
 
-## 4. Publish demo ZXP (Releases)
+---
 
-Build the signed demo:
+## Шаг 4. GitHub Release (demo ZXP)
 
-```powershell
-cd packaging
-.\Build-Zxp.ps1 -Demo -CertificatePath "D:\path\to\your.p12" -CertificatePassword "YOUR_PASSWORD"
-```
+1. Repository → **Releases** → **Draft a new release**
+2. **Tag:** `v5.5.0-demo`
+3. **Title:** `Demo 5.5.0`
+4. **Attach file:**  
+   `D:\__Adobe_developers site\001_Illustrator_Text_Export_Import\packaging\Illustrator_Export_Import_text_demo.zxp`
+5. Текст release — см. [releases/README.md](releases/README.md)
+6. **Publish release**
 
-Upload to GitHub:
+После публикации ссылка «Download demo» в README ведёт на Releases.
 
-1. Repository → **Releases** → **Create a new release**
-2. Tag: `v5.5.0-demo`
-3. Title: `Demo 5.5.0`
-4. Attach: `packaging/Illustrator_Text_Export_Import_Demo_5.5.0.zxp`
-5. Publish release
+---
 
-## 5. Configure payment link ($100)
+## Шаг 5. Adobe Exchange (full ZXP)
 
-Edit `docs/buy.html` and set:
+1. [developer.adobe.com](https://developer.adobe.com/) → **Distribute** → листинг **205341**
+2. Загрузить: `packaging/Illustrator_Export_Import_text_full.zxp`
+3. Price: **$100 USD**
+4. Where to find: **Window → Extensions → Text Export and Import**
 
-```javascript
-paymentUrl: "https://your-checkout-page.example/..."
-```
+---
 
-Options: Gumroad, Lemon Squeezy, Stripe Payment Link, PayPal, etc.
+## Шаг 6. Оплата $100 (опционально)
 
-Until the URL is set, the Buy button opens email to **sinozemez@gmail.com**.
+В `docs/buy.html` — ссылка на Exchange уже основная. Для прямой оплаты добавьте `directPaymentUrl` в `docs/assets/product-config.js`.
 
-## 6. What stays private
+---
 
-These paths are **gitignored** and must not be pushed:
+## Чеклист перед push
 
-- `assets/jsx/functions/` — full source
-- `assets/jsx/func_bin/` — commercial obfuscated build
-- `assets/jsx/func_demo/native/` — dev copies
-- `packaging/certs/`, `*.zxp`, staging folders
-
-Keep full builds and certificate only on your local machine or a private backup.
-
-## 7. Optional: Adobe Exchange
-
-For marketplace listing in parallel with direct sales, see `packaging/ADOBE_EXCHANGE.md`.
+- [ ] В git нет `*.zxp`
+- [ ] В git нет `packaging/production/`
+- [ ] Demo ZXP готов для Release (файл локально в `packaging/`)
+- [ ] Full ZXP готов для Exchange (не на GitHub)
+- [ ] Username в `docs/assets/product-config.js` и ссылках совпадает с GitHub

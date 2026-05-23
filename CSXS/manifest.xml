@@ -6,13 +6,13 @@
         ExtensionBundleName="Illustrator Text Export and Import"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <Author>
-        <![CDATA[Sergey Inozemtsev]]>
+        <![CDATA[Sergey A. Inozemtsev]]>
     </Author>
     <Contact mailto="sinozemez@gmail.com">
-        <![CDATA[]]>
+        <![CDATA[sinozemez@gmail.com]]>
     </Contact>
     <Legal>
-        <![CDATA[]]>
+        <![CDATA[Copyright 2018-2026 Sergey A. Inozemtsev. Adobe Exchange Plugin ID: 205341.]]>
     </Legal>
     <Abstract href="">
         <![CDATA[Export and import text in Adobe Illustrator to XML and XLIFF 1.2 for translation workflows.]]>
@@ -24,7 +24,7 @@
 
     <ExecutionEnvironment>
         <HostList>
-            <Host Name="ILST" Version="[17.0,30.0]"/>
+            <Host Name="ILST" Version="[17.0,31.0]"/>
         </HostList>
         <LocaleList>
             <Locale Code="All"/>

@@ -1,0 +1,19 @@
+{
+  "productName": "Illustrator Text Export and Import",
+  "versionManifest": "5.5.0",
+  "versionBuild": "5.5.0.0",
+  "adobePluginId": "205341",
+  "adobeExchangeUrl": "https://exchange.adobe.com/creativecloud.details.205341.html",
+  "developerDistributionNote": "Plugin ID is assigned by Adobe Developer Distribution. It is NOT the ExtensionBundleId in CSXS/manifest.xml.",
+  "extensionBundleId": "Illustrator_Text_Export_Import_5.5",
+  "extensionId": "Illustrator_Text_Export_Import_5.5",
+  "demoExtensionBundleId": "Illustrator_Text_Export_Import_Demo_5.5",
+  "demoExtensionId": "Illustrator_Text_Export_Import_Demo_5.5",
+  "hostApplication": "ILST",
+  "hostVersionRange": "[17.0,31.0]",
+  "menuFull": "Text Export and Import",
+  "menuDemo": "Text Export and Import (Demo)",
+  "priceUsd": 100,
+  "supportEmail": "sinozemez@gmail.com",
+  "author": "Sergey A. Inozemtsev"
+}

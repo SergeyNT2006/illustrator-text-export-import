@@ -6,6 +6,7 @@
   <title>Illustrator Text Export and Import</title>
   <meta name="description" content="Export and import text in Adobe Illustrator to XML and XLIFF 1.2 for translation workflows. Free demo available.">
   <link rel="stylesheet" href="assets/site.css">
+  <script src="assets/product-config.js"></script>
 </head>
 <body>
   <header class="site-header">
@@ -15,7 +16,8 @@
         <a class="active" href="index.html">Home</a>
         <a href="usage.html">Usage</a>
         <a href="buy.html">Buy — $100</a>
-        <a href="https://github.com/sinozemez/illustrator-text-export-import/releases" target="_blank" rel="noopener">Demo download</a>
+        <a id="nav-exchange" href="https://exchange.adobe.com/creativecloud.details.205341.html" target="_blank" rel="noopener">Adobe Exchange</a>
+        <a id="nav-demo" href="https://github.com/sinozemez/illustrator-text-export-import/releases" target="_blank" rel="noopener">Demo download</a>
       </nav>
     </div>
   </header>
@@ -31,8 +33,8 @@
             translate in your CAT tool, then import back with paragraph formatting, fonts, and colors restored.
           </p>
           <div class="cta-row">
-            <a class="btn btn-primary" href="https://github.com/sinozemez/illustrator-text-export-import/releases/latest" target="_blank" rel="noopener">Download free demo</a>
-            <a class="btn btn-secondary" href="buy.html">Buy full version — $100</a>
+            <a class="btn btn-primary" id="cta-exchange" href="https://exchange.adobe.com/creativecloud.details.205341.html" target="_blank" rel="noopener">Get on Adobe Exchange — $100</a>
+            <a class="btn btn-secondary" id="cta-demo" href="https://github.com/sinozemez/illustrator-text-export-import/releases/latest" target="_blank" rel="noopener">Download free demo</a>
             <a class="btn btn-secondary" href="usage.html">How to use</a>
           </div>
         </div>
@@ -92,8 +94,8 @@
           </tbody>
         </table>
         <div class="cta-row">
-          <a class="btn btn-primary" href="buy.html">Purchase full license</a>
-          <a class="btn btn-secondary" href="usage.html">Installation &amp; usage</a>
+          <a class="btn btn-primary" id="cta-buy-exchange" href="https://exchange.adobe.com/creativecloud.details.205341.html" target="_blank" rel="noopener">Purchase on Adobe Exchange</a>
+          <a class="btn btn-secondary" href="buy.html">Direct purchase</a>
         </div>
       </div>
     </section>
@@ -101,9 +103,24 @@
 
   <footer class="site-footer">
     <div class="wrap">
-      <span>© 2018–2026 Sergey A. Inozemtsev</span>
+      <span>© 2018–2026 Sergey A. Inozemtsev · Adobe Plugin ID 205341</span>
       <span><a href="mailto:sinozemez@gmail.com">sinozemez@gmail.com</a></span>
     </div>
   </footer>
+  <script>
+    if (window.PRODUCT_CONFIG) {
+      var c = window.PRODUCT_CONFIG;
+      var ex = document.getElementById("nav-exchange");
+      var demo = document.getElementById("nav-demo");
+      ["cta-exchange", "cta-buy-exchange"].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.href = c.adobeExchangeUrl;
+      });
+      if (demo) demo.href = c.githubDemoReleases;
+      var ctaDemo = document.getElementById("cta-demo");
+      if (ctaDemo) ctaDemo.href = c.githubDemoReleases;
+      if (ex) ex.href = c.adobeExchangeUrl;
+    }
+  </script>
 </body>
 </html>
