@@ -1,0 +1,55 @@
+Help
+========================================
+
+Quick Start
+----------------------------------------
+1) Open the source Illustrator document.
+2) Export via one of the Export buttons.
+3) Translate target content in XML/XLIFF.
+4) Import translated file back into the same document.
+
+Export Workflows
+----------------------------------------
+XML:
+- Export to XML for direct roundtrip workflows.
+- Paragraph descriptors are generated for each text frame.
+
+XLIFF:
+- Export to XLIFF 1.2 for CAT tools.
+- Select source and target language (BCP47).
+- Default pair is en-de when canceled.
+
+Language Lists (XLIFF)
+----------------------------------------
+Files in assets/help/:
+- bcp47_languages.txt
+- bcp47_languages_favorite.txt
+
+Format per line:
+tag|label
+Example:
+en|English (en)
+de|German (de)
+
+Rules:
+- Empty lines are ignored.
+- Lines starting with // are ignored.
+- Invalid lines are skipped.
+- Favorite list is auto-updated from successful selections.
+
+Import Notes
+----------------------------------------
+- Keep frame and paragraph structure unchanged.
+- Number of lines in target text must match paragraph entries.
+- Fonts are matched by internal font ID first, then by fallback names.
+
+Troubleshooting
+----------------------------------------
+If you see formatting errors:
+- Check that XML/XLIFF tags remain valid and not removed.
+- Check that translated target keeps required line breaks.
+- Verify that required fonts exist in the local Illustrator setup.
+
+If export reports problematic nodes:
+- The script handles them with fallback to keep export/import structure valid.
+- Review affected text in Illustrator and normalize local formatting if needed.

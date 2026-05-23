@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ExtensionManifest
+        Version="5.0"
+        ExtensionBundleId="Illustrator_Text_Export_Import_5.5"
+        ExtensionBundleVersion="5.5.0"
+        ExtensionBundleName="Illustrator Text Export and Import"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <Author>
+        <![CDATA[Sergey Inozemtsev]]>
+    </Author>
+    <Contact mailto="sinozemez@gmail.com">
+        <![CDATA[]]>
+    </Contact>
+    <Legal>
+        <![CDATA[]]>
+    </Legal>
+    <Abstract href="">
+        <![CDATA[Export and import text in Adobe Illustrator to XML and XLIFF 1.2 for translation workflows.]]>
+    </Abstract>
+
+    <ExtensionList>
+        <Extension Id="Illustrator_Text_Export_Import_5.5" Version="5.5.0"/>
+    </ExtensionList>
+
+    <ExecutionEnvironment>
+        <HostList>
+            <Host Name="ILST" Version="[17.0,30.0]"/>
+        </HostList>
+        <LocaleList>
+            <Locale Code="All"/>
+        </LocaleList>
+        <RequiredRuntimeList>
+            <RequiredRuntime Name="CSXS" Version="4.0"/>
+        </RequiredRuntimeList>
+    </ExecutionEnvironment>
+
+    <DispatchInfoList>
+        <Extension Id="Illustrator_Text_Export_Import_5.5">
+            <DispatchInfo>
+                <Resources>
+                    <MainPath>./index.html</MainPath>
+                    <ScriptPath>./assets/jsx/hostscript.jsx</ScriptPath>
+                    <CEFCommandLine>
+                        <Parameter>--enable-nodejs</Parameter>
+                        <Parameter>--mixed-context</Parameter>
+                        <Parameter>--allow-file-access</Parameter>
+                        <Parameter>--allow-file-access-from-files</Parameter>
+                    </CEFCommandLine>
+                </Resources>
+                <Lifecycle>
+                    <AutoVisible>true</AutoVisible>
+                </Lifecycle>
+                <UI>
+                    <Type>Panel</Type>
+                    <Menu>Text Export and Import</Menu>
+                    <Geometry>
+                        <Size>
+                            <Width>220</Width>
+                            <Height>360</Height>
+                        </Size>
+                        <MinSize>
+                            <Width>200</Width>
+                            <Height>300</Height>
+                        </MinSize>
+                        <MaxSize>
+                            <Width>260</Width>
+                            <Height>2000</Height>
+                        </MaxSize>
+                    </Geometry>
+                    <Icons>
+                        <Icon Type="Normal">./assets/img/appIcon/panelIcon.png</Icon>
+                        <Icon Type="RollOver">./assets/img/appIcon/panelIcon.png</Icon>
+                        <Icon Type="DarkNormal">./assets/img/appIcon/panelIcon.png</Icon>
+                        <Icon Type="DarkRollOver">./assets/img/appIcon/panelIcon.png</Icon>
+                    </Icons>
+                </UI>
+            </DispatchInfo>
+        </Extension>
+    </DispatchInfoList>
+
+</ExtensionManifest>

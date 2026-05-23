@@ -1,0 +1,20 @@
+# Generated / local-only — do not commit
+packaging/certs/
+packaging/*.zxp
+packaging/staging_*/
+packaging/staging_Expo_Impo_for_Illustrator/
+packaging/.rnd
+
+# Commercial & internal source (keep local only)
+assets/jsx/functions/
+assets/jsx/func_bin/
+assets/jsx/func_demo/native/
+dev_docs/
+to-do.md
+.debug
+/readme.md
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini

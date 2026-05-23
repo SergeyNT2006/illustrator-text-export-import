@@ -1,0 +1,27 @@
+# Illustrator Text Export and Import — End User License Agreement
+
+Copyright © 2018–2026 Sergey A. Inozemtsev. All rights reserved.
+
+## Demo version
+
+The free demo extension may be used for **evaluation and testing only**. Demo builds limit processing to the first 5 text frames per document and the first 5 files per batch job.
+
+## Full version
+
+A paid license ($100 USD unless otherwise agreed in writing) grants **one user or one production seat** the right to install and use the full signed extension for commercial work.
+
+You may **not**:
+
+- redistribute, resell, or sublicense the full `.zxp` or any part of the commercial build
+- reverse engineer or remove license limits from the demo for production use
+- publish the obfuscated commercial JSX (`func_bin`) or unreleased source
+
+## Support
+
+Support is provided on a reasonable-efforts basis via sinozemez@gmail.com for licensed users.
+
+## Disclaimer
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. THE AUTHOR IS NOT LIABLE FOR DATA LOSS OR LAYOUT CHANGES IN ILLUSTRATOR DOCUMENTS. ALWAYS KEEP BACKUPS BEFORE BATCH IMPORT.
+
+Contact for multi-seat or studio licensing: sinozemez@gmail.com

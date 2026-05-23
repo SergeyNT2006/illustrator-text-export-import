@@ -1,0 +1,55 @@
+.page {
+ color: var(--color-primary);
+ background-color: var(--bg-primary);
+ padding: .65rem .3rem .75rem;
+ position: relative;
+ display: block;
+}
+
+.page__section {
+ box-sizing: border-box;
+ padding: 0rem .15rem;
+ position: relative;
+}
+
+.page__mode {
+ padding: 0 0 .55rem .15rem;
+ font-size: .85rem;
+ letter-spacing: 0.04em;
+ color: var(--accent-2);
+ opacity: 0.9;
+ text-transform: none;
+}
+
+.page__section-title {
+ padding-bottom: .55rem;
+ padding-top: 0;
+ text-transform: uppercase;
+ font-size: .95rem;
+ letter-spacing: 0.08em;
+ opacity: 1;
+ font-weight: 700;
+ color: var(--accent-2);
+}
+
+.page__section:not(:first-child) .page__section-title {
+ padding-top: 1rem;
+}
+
+.page__inner {
+ display: grid;
+ grid-template-columns: 1fr;
+ gap: .5rem;
+ justify-items: center;
+}
+
+.page__line-sep {
+ position: absolute;
+ width: calc(100vw - .8rem);
+ left: 50%;
+ transform: translate(-50%, .45rem);
+ height: 2px;
+ box-sizing: border-box;
+ border-bottom: 2px solid rgba(255, 122, 26, 0.45);
+ opacity: 0.9;
+}

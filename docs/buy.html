@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buy — Illustrator Text Export and Import</title>
+  <meta name="description" content="Purchase the full Illustrator Text Export and Import license for $100 USD.">
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+  <!-- Edit PAYMENT_URL below when your checkout page is ready (Gumroad, Stripe, PayPal, etc.) -->
+  <script>
+    window.PRODUCT = {
+      name: "Illustrator Text Export and Import — Full License",
+      price: "$100 USD",
+      paymentUrl: "", // e.g. "https://your-store.gumroad.com/l/illustrator-text-export-import"
+      supportEmail: "sinozemez@gmail.com"
+    };
+  </script>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="logo" href="index.html">Text Export &amp; Import</a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="usage.html">Usage</a>
+        <a class="active" href="buy.html">Buy — $100</a>
+        <a href="https://github.com/sinozemez/illustrator-text-export-import/releases" target="_blank" rel="noopener">Demo download</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="section">
+    <div class="wrap hero-grid">
+      <div class="card">
+        <span class="badge">One-time license</span>
+        <h1>Full version</h1>
+        <p class="price">$100 <small>USD</small></p>
+        <p class="lead">Unlimited frames and batch files. Licensed for commercial production use. Signed ZXP for Illustrator CS6–2026.</p>
+
+        <ul>
+          <li>Unlimited XML / XLIFF export &amp; import</li>
+          <li>Unlimited batch export &amp; import</li>
+          <li>Windows &amp; macOS</li>
+          <li>Email support</li>
+          <li>Updates for the 5.5.x line included</li>
+        </ul>
+
+        <div class="cta-row">
+          <a id="buy-btn" class="btn btn-primary" href="#">Buy now — $100</a>
+          <a class="btn btn-secondary" href="https://github.com/sinozemez/illustrator-text-export-import/releases/latest" target="_blank" rel="noopener">Try demo first</a>
+        </div>
+        <p id="buy-fallback" class="note" style="margin-top:20px;display:none;">
+          Online checkout is being configured. Email <a id="support-link" href="mailto:sinozemez@gmail.com">sinozemez@gmail.com</a> to purchase by invoice / PayPal.
+        </p>
+      </div>
+
+      <aside class="card">
+        <h2>What you receive</h2>
+        <ol class="steps">
+          <li>Payment confirmation</li>
+          <li>Download link for the signed full <strong>.zxp</strong> package</li>
+          <li>License key / receipt for your records</li>
+          <li>Install via Extension Manager and restart Illustrator</li>
+        </ol>
+
+        <h3>License summary</h3>
+        <p class="note">One license covers one user or one production seat. Redistribution of the ZXP or source is not permitted. See <a href="https://github.com/sinozemez/illustrator-text-export-import/blob/main/LICENSE">LICENSE</a> in the repository.</p>
+
+        <h3>Questions?</h3>
+        <p>Contact <a href="mailto:sinozemez@gmail.com">sinozemez@gmail.com</a> before purchase if you need multi-seat or studio licensing.</p>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>Sergey A. Inozemtsev</span>
+      <span><a href="index.html">Home</a></span>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var p = window.PRODUCT;
+      var btn = document.getElementById("buy-btn");
+      var fallback = document.getElementById("buy-fallback");
+      var support = document.getElementById("support-link");
+      support.href = "mailto:" + p.supportEmail + "?subject=Purchase%20Illustrator%20Text%20Export%20and%20Import";
+
+      if (p.paymentUrl) {
+        btn.href = p.paymentUrl;
+        btn.target = "_blank";
+        btn.rel = "noopener";
+      } else {
+        btn.href = support.href;
+        fallback.style.display = "block";
+      }
+    })();
+  </script>
+</body>
+</html>

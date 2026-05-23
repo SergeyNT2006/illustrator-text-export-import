@@ -1,0 +1,20 @@
+Illustrator Text Export and Import
+Version: 5.5.0.0
+Years: 2018-2026
+
+Author
+----------------------------------------
+Sergey A. Inozemtsev
+Email: sinozemez@gmail.com
+Alt email: ryzl@hotmail.com
+
+Compatibility
+----------------------------------------
+Host: Adobe Illustrator (CEP panel workflow)
+Formats: XML, XLIFF 1.2
+
+What is new in this build
+----------------------------------------
+- Extended XLIFF language-pair workflow with editable BCP47 lists
+- Improved font mapping reliability using internal font IDs
+- Safer export for problematic text nodes with fallback handling
