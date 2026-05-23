@@ -37,7 +37,7 @@ Free evaluation build for Adobe Illustrator.
 
 ### Full version ($100)
 - [Adobe Exchange — Plugin ID 205341](https://exchange.adobe.com/creativecloud.details.205341.html)
-- [Product site / buy page](https://sinozemez.github.io/illustrator-text-export-import/buy.html)
+- [Product site / buy page](https://sergeynt2006.github.io/illustrator-text-export-import/buy.html)
 
 Support: sinozemez@gmail.com
 ```

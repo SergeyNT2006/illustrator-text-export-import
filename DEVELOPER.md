@@ -13,7 +13,7 @@ CEP panel for **Adobe Illustrator** — export document text to **XML** or **XLI
 | **Home & overview** | [docs/index.html](docs/index.html) → enable [GitHub Pages](GITHUB_SETUP.md) |
 | **Usage guide** | [docs/usage.html](docs/usage.html) |
 | **Purchase ($100 USD)** | [docs/buy.html](docs/buy.html) |
-| **Free demo (.zxp)** | [GitHub Releases](https://github.com/sinozemez/illustrator-text-export-import/releases) |
+| **Free demo (.zxp)** | [GitHub Releases](https://github.com/SergeyNT2006/illustrator-text-export-import/releases) |
 
 ---
 
@@ -36,7 +36,7 @@ CEP panel for **Adobe Illustrator** — export document text to **XML** or **XLI
 | Files per batch job | 5 | Unlimited |
 | Commercial use | Evaluation | Licensed |
 
-Download the demo from **[Releases](https://github.com/sinozemez/illustrator-text-export-import/releases)**.  
+Download the demo from **[Releases](https://github.com/SergeyNT2006/illustrator-text-export-import/releases)**.  
 Purchase the full signed ZXP on the **[buy page](docs/buy.html)**.
 
 ---

@@ -45,24 +45,25 @@
 
 ---
 
-## Шаг 2. Push кода
+**Репозиторий:** https://github.com/SergeyNT2006/illustrator-text-export-import
 
-Замените `YOUR_GITHUB_USERNAME` (сейчас в ссылках: `sinozemez`):
+---
+
+## Шаг 2. Push кода
 
 ```powershell
 cd "D:\__Adobe_developers site\001_Illustrator_Text_Export_Import"
 git add -A
-git status
-git commit -m "Prepare public repo: docs, demo sources, packaging workflow for Plugin ID 205341."
+git commit -m "Point docs and links to SergeyNT2006 GitHub repo."
 git branch -M main
-git remote add origin https://github.com/YOUR_GITHUB_USERNAME/illustrator-text-export-import.git
+git remote add origin https://github.com/SergeyNT2006/illustrator-text-export-import.git
 git push -u origin main
 ```
 
 Если `origin` уже есть:
 
 ```powershell
-git remote set-url origin https://github.com/YOUR_GITHUB_USERNAME/illustrator-text-export-import.git
+git remote set-url origin https://github.com/SergeyNT2006/illustrator-text-export-import.git
 git push -u origin main
 ```
 
@@ -77,7 +78,7 @@ git push -u origin main
 URL сайта:
 
 ```text
-https://YOUR_GITHUB_USERNAME.github.io/illustrator-text-export-import/
+https://sergeynt2006.github.io/illustrator-text-export-import/
 ```
 
 Обновите `YOUR_GITHUB_USERNAME` в `docs/assets/product-config.js` при необходимости.

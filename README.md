@@ -13,7 +13,7 @@ CEP panel for **Adobe Illustrator** — export document text to **XML** or **XLI
 | **Home & overview** | [docs/index.html](docs/index.html) |
 | **Usage guide** | [docs/usage.html](docs/usage.html) |
 | **Purchase ($100 USD)** | [Adobe Exchange (205341)](https://exchange.adobe.com/creativecloud.details.205341.html) · [docs/buy.html](docs/buy.html) |
-| **Free demo (.zxp)** | [GitHub Releases](https://github.com/sinozemez/illustrator-text-export-import/releases) |
+| **Free demo (.zxp)** | [GitHub Releases](https://github.com/SergeyNT2006/illustrator-text-export-import/releases) |
 | **GitHub setup** | [GITHUB_SETUP.md](GITHUB_SETUP.md) |
 | **Demo ZXP (local)** | `packaging/Illustrator_Export_Import_text_demo.zxp` |
 
@@ -38,7 +38,7 @@ CEP panel for **Adobe Illustrator** — export document text to **XML** or **XLI
 | Files per batch job | 5 | Unlimited |
 | Commercial use | Evaluation | Licensed |
 
-Download the demo from **[Releases](https://github.com/sinozemez/illustrator-text-export-import/releases)**.  
+Download the demo from **[Releases](https://github.com/SergeyNT2006/illustrator-text-export-import/releases)**.  
 Purchase the full version on **[Adobe Exchange (Plugin ID 205341)](https://exchange.adobe.com/creativecloud.details.205341.html)** or the **[direct buy page](docs/buy.html)**.
 
 ---

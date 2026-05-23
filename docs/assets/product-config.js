@@ -6,5 +6,8 @@ window.PRODUCT_CONFIG = {
   extensionBundleId: "Illustrator_Text_Export_Import_5.5",
   priceUsd: 100,
   supportEmail: "sinozemez@gmail.com",
-  githubDemoReleases: "https://github.com/sinozemez/illustrator-text-export-import/releases/latest"
+  githubUser: "SergeyNT2006",
+  githubRepo: "https://github.com/SergeyNT2006/illustrator-text-export-import",
+  githubDemoReleases: "https://github.com/SergeyNT2006/illustrator-text-export-import/releases/latest",
+  githubPagesUrl: "https://sergeynt2006.github.io/illustrator-text-export-import/"
 };
