@@ -16,6 +16,23 @@ CEP panel for **Adobe Illustrator** — export document text to **XML** or **XLI
 | **Usage guide** | [docs/usage.html](docs/usage.html) |
 | **PayPal purchase** | [docs/purchase.html](docs/purchase.html) |
 | **Free demo (.zxp)** | [GitHub Releases](https://github.com/SergeyNT2006/illustrator-text-export-import/releases/latest) |
+| **Free demo (standalone `.jsx`)** | [ILL-EXP-IMP_demo.jsx](assets/jsx/Standalone/binary/ILL-EXP-IMP_demo.jsx) — no CEP install |
+
+---
+
+## Standalone script (no CEP panel)
+
+Prefer **File → Scripts** over a panel? Use a **single `.jsx` file** with the same workflow (XML, XLIFF, batch, About, Help). Nothing else to install — help texts and language lists are built in.
+
+| | Demo (free) | Full ($100, on request) |
+|---|:--:|:--:|
+| Delivery | [ILL-EXP-IMP_demo.jsx](assets/jsx/Standalone/binary/ILL-EXP-IMP_demo.jsx) in this repo | One `.jsx` file by email after purchase |
+| CEP / ZXP required | No | No |
+| Same price as Exchange build | — | **$100** |
+
+After buying on [Adobe Exchange](https://exchange.adobe.com/apps/cc/205341) or [PayPal](docs/purchase.html), email [sinozemez@gmail.com](mailto:sinozemez@gmail.com) and ask for the **full standalone JSX** if you do not need the panel.
+
+Details: **[Standalone folder](assets/jsx/Standalone/README.md)** · **[usage guide](docs/usage.html)**
 
 ---
 

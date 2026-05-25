@@ -2,7 +2,15 @@
 
 packaging/
 CSXS/
-assets/
+assets/*
+!assets/jsx/
+assets/jsx/*
+!assets/jsx/Standalone/
+assets/jsx/Standalone/*
+!assets/jsx/Standalone/README.md
+!assets/jsx/Standalone/binary/
+assets/jsx/Standalone/binary/*
+!assets/jsx/Standalone/binary/**
 components/
 index.html
 mimetype
