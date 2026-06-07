@@ -1,5 +1,6 @@
 # Local development only — not published on GitHub
 
+_project_extras/
 packaging/
 CSXS/
 assets/*

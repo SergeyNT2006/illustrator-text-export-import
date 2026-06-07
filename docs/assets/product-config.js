@@ -1,5 +1,5 @@
 window.PRODUCT_CONFIG = {
-  name: "Illustrator Text Export and Import",
+  name: "Export-Import text for Illustrator",
   version: "5.5.0",
   adobePluginId: "205341",
   adobeExchangeUrl: "https://exchange.adobe.com/apps/cc/205341",
