@@ -88,7 +88,7 @@ Use **ABOUT** and **HELP** in the panel for version info and detailed tips.
 
 ### Demo vs full version
 
-| | Demo (free) | Full ($100) |
+| | Demo (free) | Full ($45) |
 |---|:--:|:--:|
 | XML / XLIFF / batch UI | ✓ | ✓ |
 | Text frames per document | 5 | Unlimited |
